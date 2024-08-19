@@ -16,7 +16,7 @@ import { JWT_SECRET } from 'src/configs/jwtConfig';
  */
 export const signToken = (payload: JWTData) => {
     try {
-        return jwt.sign(payload, JWT_SECRET, { expiresIn: '1d' });
+        return jwt.sign(payload, JWT_SECRET);
     }
     catch (error: unknown) {
         if (error instanceof Error) {

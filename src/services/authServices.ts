@@ -6,6 +6,7 @@
  */
 
 import { signToken } from "./utils";
+import { models } from "src/db";
 
 /**
  * Checks if a user with the given email exists. 
@@ -16,7 +17,10 @@ import { signToken } from "./utils";
  */
 export const userExistsService = async (email: string): Promise<boolean> => {
     try {
-        return true;
+        const userExists = await models.users.findOne({ where: { email } });
+
+        return userExists !== null;
+
     } catch (error: unknown) {
         if (error instanceof Error) {
             throw new Error(error.message);
@@ -37,7 +41,12 @@ export const userExistsService = async (email: string): Promise<boolean> => {
  */
 export const createUserService = async (email: string, password: string): Promise<void> => {
     try {
+        const user = models.users.create({ email, password });
+        if (!user) {
+            throw new Error('User could not be created');
+        }
 
+        return user;
     } catch (error: unknown) {
         if (error instanceof Error) {
             throw new Error(error.message);
@@ -58,7 +67,11 @@ export const createUserService = async (email: string, password: string): Promis
  */
 export const loginUserService = async (email: string, password: string): Promise<string> => {
     try {
-        return 'token';
+        const { userId } = await models.users.findOne({ where: { email, password }, plain: true });
+
+        const token = await signToken(userId);
+
+        return token;
     } catch (error: unknown) {
         if (error instanceof Error) {
             throw new Error(error.message);

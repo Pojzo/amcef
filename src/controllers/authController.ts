@@ -6,7 +6,7 @@
 
 
 import { Request, Response } from 'express';
-import { createUserService, userExistsService } from 'src/services/authServices';
+import { createUserService, loginUserService, userExistsService } from 'src/services/authServices';
 
 export const handleRegister = async (req: Request, res: Response) => {
     try {
@@ -18,13 +18,14 @@ export const handleRegister = async (req: Request, res: Response) => {
         // If any of these functions fail, an error will be thrown inside the service functions
         // and the catch block will handle it
         const user = await createUserService(req.body.email, req.body.password);
-        const { token } = await loginUserService(req.body.email, req.body.password);
+        const token = await loginUserService(req.body.email, req.body.password);
 
         return res.status(201).json({ token, user });
 
     } catch (error: unknown) {
         if (error instanceof Error) {
-            res.status(500).json({ message: "Internal Server Error", error });
+            console.error(error.message);
+            res.status(500).json({ message: error.message });
         } else {
             res.status(500).json({ message: "Internal Server Error" });
         }
@@ -37,7 +38,7 @@ export const handleLogin = async (req: Request, res: Response) => {
         if (!userExists) {
             return res.status(404).json({ message: "User not found" });
         }
-        const { token } = await loginUserService(req.body.email, req.body.password);
+        const token = await loginUserService(req.body.email, req.body.password);
 
         return res.status(200).json({ token });
 
