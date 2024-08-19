@@ -1,0 +1,28 @@
+{
+  "name": "amcef",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "npx tsx src/server.ts"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "cookie-parser": "^1.4.6",
+    "cors": "^2.8.5",
+    "express": "^4.19.2",
+    "express-validator": "^7.2.0",
+    "jsonwebtoken": "^9.0.2",
+    "nodemon": "^3.1.4",
+    "sequelize-auto": "^0.8.8",
+    "sequelize-cli": "^6.6.2",
+    "tsx": "^4.17.0"
+  },
+  "devDependencies": {
+    "babel-plugin-module-resolver": "^5.0.2"
+  }
+}
