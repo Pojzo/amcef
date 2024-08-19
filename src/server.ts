@@ -9,7 +9,7 @@ import cors from "cors";
 import cookieParser from "cookie-parser";
 
 import Router from "./routes";
-import { PORT, URL } from "./configs/server_config";
+import { PORT, URL } from "./configs/serverConfig";
 
 const server = express();
 

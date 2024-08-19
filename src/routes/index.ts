@@ -4,9 +4,9 @@
  * @date 19.8.2024
  */
 
-import authRouter from "./auth_routes";
-import taskRouter from "./task_routes";
-import userRouter from "./user_routes";
+import authRouter from "./authRoutes";
+import taskRouter from "./taskRoutes";
+import userRouter from "./userRoutes";
 
 // Define routes and forward them to the appropriate router
 const Router = (server) => {

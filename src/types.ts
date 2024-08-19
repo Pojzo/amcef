@@ -1,0 +1,3 @@
+interface JWTData {
+    userId: string
+}
