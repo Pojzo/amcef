@@ -5,7 +5,15 @@
  */
 
 import express from "express";
-import { handleCreateList, handleDeleteList, handleGetAllLists, handleGetList, handleGetMyLists } from "src/controllers/listController";
+import {
+  handleAddItemToList,
+  handleCreateList,
+  handleDeleteItemFromList,
+  handleDeleteList,
+  handleGetAllLists,
+  handleGetList,
+  handleGetMyLists,
+} from "src/controllers/listController";
 import { authMiddleware } from "src/middleware/authMiddleware";
 
 const listRouter = express.Router();
@@ -18,9 +26,14 @@ listRouter.get("/:listId", handleGetList);
 listRouter.put("/:listId", authMiddleware, handleCreateList);
 listRouter.delete("/:listId", authMiddleware, handleDeleteList);
 
-// listRouter.post(":listId/items", authMiddleware, handleAddItemToList);
+listRouter.post("/:listId/items", authMiddleware, handleAddItemToList);
+
 // listRouter.get(":listId/items", handleGetMyLists);
 // listRouter.put(":listId/items/:itemId", authMiddleware, handleUpdateItemInList);
-// listRouter.delete(":listId/items/:itemId", authMiddleware, handleDeleteItemFromList);
+listRouter.delete(
+  "/:listId/items/:itemId",
+  authMiddleware,
+  handleDeleteItemFromList
+);
 
 export default listRouter;

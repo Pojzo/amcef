@@ -3,11 +3,17 @@ interface JWTData {
     jwtTokenVersion: number
 }
 
-interface List {
-    listId: number
-    title: string
+enum ItemFlag {
+    Active = "active",
+    Finished = "finished",
+    Aborted = "aborted",
 }
 
-interface GetListsResposne {
-    lists: List[]
+export interface CreateItem {
+    userId: number
+    listId: number,
+    title: string
+    description: string
+    deadline: string
+    flag: ItemFlag
 }

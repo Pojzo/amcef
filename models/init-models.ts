@@ -40,16 +40,16 @@ export function initModels(sequelize: Sequelize) {
 
   lists.belongsToMany(users, { as: 'userId_users', through: userLists, foreignKey: "listId", otherKey: "userId" });
   users.belongsToMany(lists, { as: 'listId_lists', through: userLists, foreignKey: "userId", otherKey: "listId" });
-  items.belongsTo(lists, { as: "list", foreignKey: "listId"});
-  lists.hasMany(items, { as: "items", foreignKey: "listId"});
-  userLists.belongsTo(lists, { as: "list", foreignKey: "listId"});
-  lists.hasMany(userLists, { as: "userLists", foreignKey: "listId"});
-  items.belongsTo(users, { as: "createdBy_user", foreignKey: "createdBy"});
-  users.hasMany(items, { as: "items", foreignKey: "createdBy"});
-  lists.belongsTo(users, { as: "createdBy_user", foreignKey: "createdBy"});
-  users.hasMany(lists, { as: "lists", foreignKey: "createdBy"});
-  userLists.belongsTo(users, { as: "user", foreignKey: "userId"});
-  users.hasMany(userLists, { as: "userLists", foreignKey: "userId"});
+  items.belongsTo(lists, { as: "list", foreignKey: "listId" });
+  lists.hasMany(items, { as: "items", foreignKey: "listId" });
+  userLists.belongsTo(lists, { as: "list", foreignKey: "listId" });
+  lists.hasMany(userLists, { as: "userLists", foreignKey: "listId" });
+  items.belongsTo(users, { as: "createdBy_user", foreignKey: "createdBy" });
+  users.hasMany(items, { as: "items", foreignKey: "createdBy" });
+  lists.belongsTo(users, { as: "createdBy_user", foreignKey: "createdBy" });
+  users.hasMany(lists, { as: "lists", foreignKey: "createdBy" });
+  userLists.belongsTo(users, { as: "user", foreignKey: "userId" });
+  users.hasMany(userLists, { as: "userLists", foreignKey: "userId" });
 
   return {
     SequelizeMeta: SequelizeMeta,
