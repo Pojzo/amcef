@@ -8,6 +8,7 @@
 import { getUserFromToken } from "src/middleware/utils";
 import { signToken } from "./utils";
 import { models } from "src/db";
+import { raw } from "mysql2";
 
 /**
  * Checks if a user with the given email exists. 
@@ -90,9 +91,16 @@ export const createUserService = async (email: string, password: string): Promis
  */
 export const loginUserService = async (email: string, password: string): Promise<string> => {
     try {
-        const { userId, jwtTokenVersion } = await models.users.findOne({ where: { email, password }, plain: true });
 
-        const token = await signToken({ userId, jwtTokenVersion });
+        const user = await models.users.findOne({ where: { email, password }, raw: true});
+
+        if (!user) {
+            throw new Error('User not found');
+        }
+        const userId = user.userId;
+        const jwtTokenVersion = user.jwtTokenVersion;
+
+        const token = await signToken({userId, jwtTokenVersion});
 
         return token;
     } catch (error: unknown) {
@@ -113,7 +121,6 @@ export const loginUserService = async (email: string, password: string): Promise
  */
 export const logoutUserService = async (userId: string): Promise<void> => {
     try {
-        console.log('logging out');
         const user = await models.users.findOne({ where: { userId } });
         user.jwtTokenVersion += 1;
         await user.save();
@@ -135,7 +142,10 @@ export const isLoggedInService = async (token: string): Promise<boolean> => {
 
         // tokenVersion is the version of the token in the database
         const rawData = await models.users.findOne({ where: { userId }, attributes: ['jwtTokenVersion'] });
-        const dbTokenVersion = rawData.jwtTokenVersion;
+
+        const data = rawData.get({ plain: true });
+
+        const dbTokenVersion = data.jwtTokenVersion;
 
         console.log(jwtTokenVersion, dbTokenVersion);
 

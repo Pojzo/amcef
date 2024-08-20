@@ -1,4 +1,4 @@
 interface JWTData {
-    userId: string
+    userId: number
     jwtTokenVersion: number
 }

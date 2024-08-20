@@ -10,6 +10,7 @@ import cookieParser from "cookie-parser";
 
 import Router from "./routes";
 import { PORT, URL } from "./configs/serverConfig";
+import { models } from "./db";
 
 const server = express();
 
