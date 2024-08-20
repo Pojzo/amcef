@@ -9,7 +9,9 @@
     "kill-server": "sudo lsof -i :8888 | awk 'NR > 1 {print $2}' | xargs kill -9",
     "db-create": "npx sequelize db:create --env=development",
     "db-migrate": "npx sequelize db:migrate --env=development",
+    "db-seed": "npx sequelize db:seed:all --env=development",
     "db-seq-auto": "npx sequelize-auto -o ./models -l ts esm -d database_development -h 127.0.0.1 -u root -x Root12345 -e mysql",
+    "db-init": "npx sequelize db:drop && npm run db-create && npm run db-migrate && npm run db-seed",
     "db-drop": "npx sequelize db:drop --env=development"
   },
   "keywords": [],

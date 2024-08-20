@@ -34,7 +34,19 @@ export class users extends Model<usersAttributes, usersCreationAttributes> imple
   hasItem!: Sequelize.HasManyHasAssociationMixin<items, itemsId>;
   hasItems!: Sequelize.HasManyHasAssociationsMixin<items, itemsId>;
   countItems!: Sequelize.HasManyCountAssociationsMixin;
-  // users belongsToMany lists via userid and listId
+  // users hasMany lists via createdBy
+  lists!: lists[];
+  getLists!: Sequelize.HasManyGetAssociationsMixin<lists>;
+  setLists!: Sequelize.HasManySetAssociationsMixin<lists, listsId>;
+  addList!: Sequelize.HasManyAddAssociationMixin<lists, listsId>;
+  addLists!: Sequelize.HasManyAddAssociationsMixin<lists, listsId>;
+  createList!: Sequelize.HasManyCreateAssociationMixin<lists>;
+  removeList!: Sequelize.HasManyRemoveAssociationMixin<lists, listsId>;
+  removeLists!: Sequelize.HasManyRemoveAssociationsMixin<lists, listsId>;
+  hasList!: Sequelize.HasManyHasAssociationMixin<lists, listsId>;
+  hasLists!: Sequelize.HasManyHasAssociationsMixin<lists, listsId>;
+  countLists!: Sequelize.HasManyCountAssociationsMixin;
+  // users belongsToMany lists via userId and listId
   listId_lists!: lists[];
   getListId_lists!: Sequelize.BelongsToManyGetAssociationsMixin<lists>;
   setListId_lists!: Sequelize.BelongsToManySetAssociationsMixin<lists, listsId>;
@@ -46,7 +58,7 @@ export class users extends Model<usersAttributes, usersCreationAttributes> imple
   hasListId_list!: Sequelize.BelongsToManyHasAssociationMixin<lists, listsId>;
   hasListId_lists!: Sequelize.BelongsToManyHasAssociationsMixin<lists, listsId>;
   countListId_lists!: Sequelize.BelongsToManyCountAssociationsMixin;
-  // users hasMany userLists via userid
+  // users hasMany userLists via userId
   userLists!: userLists[];
   getUserLists!: Sequelize.HasManyGetAssociationsMixin<userLists>;
   setUserLists!: Sequelize.HasManySetAssociationsMixin<userLists, userListsId>;

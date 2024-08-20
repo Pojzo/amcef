@@ -7,7 +7,7 @@
 import express from "express";
 import { handleIsLoggedIn, handleLogin, handleLogout, handleRegister } from "src/controllers/authController";
 import { authMiddleware } from "src/middleware/authMiddleware";
-import { validateLogin, validateRegister } from "src/middleware/validator";
+import { validateLogin, validateRegister } from "src/middleware/userValidator";
 
 const authRouter = express.Router();
 

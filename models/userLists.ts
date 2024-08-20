@@ -5,23 +5,23 @@ import type { users, usersId } from './users';
 
 export interface userListsAttributes {
   listId: number;
-  userid: number;
+  userId: number;
 }
 
-export type userListsPk = "listId" | "userid";
+export type userListsPk = "listId" | "userId";
 export type userListsId = userLists[userListsPk];
 export type userListsCreationAttributes = userListsAttributes;
 
 export class userLists extends Model<userListsAttributes, userListsCreationAttributes> implements userListsAttributes {
   listId!: number;
-  userid!: number;
+  userId!: number;
 
   // userLists belongsTo lists via listId
   list!: lists;
   getList!: Sequelize.BelongsToGetAssociationMixin<lists>;
   setList!: Sequelize.BelongsToSetAssociationMixin<lists, listsId>;
   createList!: Sequelize.BelongsToCreateAssociationMixin<lists>;
-  // userLists belongsTo users via userid
+  // userLists belongsTo users via userId
   user!: users;
   getUser!: Sequelize.BelongsToGetAssociationMixin<users>;
   setUser!: Sequelize.BelongsToSetAssociationMixin<users, usersId>;
@@ -38,7 +38,7 @@ export class userLists extends Model<userListsAttributes, userListsCreationAttri
         key: 'listId'
       }
     },
-    userid: {
+    userId: {
       type: DataTypes.INTEGER,
       allowNull: false,
       primaryKey: true,
@@ -58,14 +58,14 @@ export class userLists extends Model<userListsAttributes, userListsCreationAttri
         using: "BTREE",
         fields: [
           { name: "listId" },
-          { name: "userid" },
+          { name: "userId" },
         ]
       },
       {
-        name: "userid",
+        name: "userId",
         using: "BTREE",
         fields: [
-          { name: "userid" },
+          { name: "userId" },
         ]
       },
     ]

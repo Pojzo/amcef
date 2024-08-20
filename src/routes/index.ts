@@ -11,8 +11,7 @@ import userRouter from "./userRoutes";
 // Define routes and forward them to the appropriate router
 const Router = (server) => {
     server.use("/auth", authRouter);
-    server.use("/api/user", userRouter);
-    server.use("/api/task", listRouter);
+    server.use("/lists", listRouter);
 
     // test route
     server.get("/", (req, res) => {

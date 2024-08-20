@@ -7,6 +7,7 @@ import type { users, usersId } from './users';
 export interface listsAttributes {
   listId: number;
   title: string;
+  createdBy: number;
 }
 
 export type listsPk = "listId";
@@ -17,6 +18,7 @@ export type listsCreationAttributes = Optional<listsAttributes, listsOptionalAtt
 export class lists extends Model<listsAttributes, listsCreationAttributes> implements listsAttributes {
   listId!: number;
   title!: string;
+  createdBy!: number;
 
   // lists hasMany items via listId
   items!: items[];
@@ -42,18 +44,23 @@ export class lists extends Model<listsAttributes, listsCreationAttributes> imple
   hasUserList!: Sequelize.HasManyHasAssociationMixin<userLists, userListsId>;
   hasUserLists!: Sequelize.HasManyHasAssociationsMixin<userLists, userListsId>;
   countUserLists!: Sequelize.HasManyCountAssociationsMixin;
-  // lists belongsToMany users via listId and userid
-  userid_users!: users[];
-  getUserid_users!: Sequelize.BelongsToManyGetAssociationsMixin<users>;
-  setUserid_users!: Sequelize.BelongsToManySetAssociationsMixin<users, usersId>;
-  addUserid_user!: Sequelize.BelongsToManyAddAssociationMixin<users, usersId>;
-  addUserid_users!: Sequelize.BelongsToManyAddAssociationsMixin<users, usersId>;
-  createUserid_user!: Sequelize.BelongsToManyCreateAssociationMixin<users>;
-  removeUserid_user!: Sequelize.BelongsToManyRemoveAssociationMixin<users, usersId>;
-  removeUserid_users!: Sequelize.BelongsToManyRemoveAssociationsMixin<users, usersId>;
-  hasUserid_user!: Sequelize.BelongsToManyHasAssociationMixin<users, usersId>;
-  hasUserid_users!: Sequelize.BelongsToManyHasAssociationsMixin<users, usersId>;
-  countUserid_users!: Sequelize.BelongsToManyCountAssociationsMixin;
+  // lists belongsToMany users via listId and userId
+  userId_users!: users[];
+  getUserId_users!: Sequelize.BelongsToManyGetAssociationsMixin<users>;
+  setUserId_users!: Sequelize.BelongsToManySetAssociationsMixin<users, usersId>;
+  addUserId_user!: Sequelize.BelongsToManyAddAssociationMixin<users, usersId>;
+  addUserId_users!: Sequelize.BelongsToManyAddAssociationsMixin<users, usersId>;
+  createUserId_user!: Sequelize.BelongsToManyCreateAssociationMixin<users>;
+  removeUserId_user!: Sequelize.BelongsToManyRemoveAssociationMixin<users, usersId>;
+  removeUserId_users!: Sequelize.BelongsToManyRemoveAssociationsMixin<users, usersId>;
+  hasUserId_user!: Sequelize.BelongsToManyHasAssociationMixin<users, usersId>;
+  hasUserId_users!: Sequelize.BelongsToManyHasAssociationsMixin<users, usersId>;
+  countUserId_users!: Sequelize.BelongsToManyCountAssociationsMixin;
+  // lists belongsTo users via createdBy
+  createdBy_user!: users;
+  getCreatedBy_user!: Sequelize.BelongsToGetAssociationMixin<users>;
+  setCreatedBy_user!: Sequelize.BelongsToSetAssociationMixin<users, usersId>;
+  createCreatedBy_user!: Sequelize.BelongsToCreateAssociationMixin<users>;
 
   static initModel(sequelize: Sequelize.Sequelize): typeof lists {
     return lists.init({
@@ -66,6 +73,14 @@ export class lists extends Model<listsAttributes, listsCreationAttributes> imple
     title: {
       type: DataTypes.STRING(50),
       allowNull: false
+    },
+    createdBy: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      references: {
+        model: 'users',
+        key: 'userId'
+      }
     }
   }, {
     sequelize,
@@ -78,6 +93,13 @@ export class lists extends Model<listsAttributes, listsCreationAttributes> imple
         using: "BTREE",
         fields: [
           { name: "listId" },
+        ]
+      },
+      {
+        name: "createdBy",
+        using: "BTREE",
+        fields: [
+          { name: "createdBy" },
         ]
       },
     ]

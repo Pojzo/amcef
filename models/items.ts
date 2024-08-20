@@ -10,11 +10,12 @@ export interface itemsAttributes {
   description: string;
   createdBy: number;
   flag: 'active' | 'finished' | 'aborted';
+  deadline?: Date;
 }
 
 export type itemsPk = "itemId";
 export type itemsId = items[itemsPk];
-export type itemsOptionalAttributes = "itemId" | "flag";
+export type itemsOptionalAttributes = "itemId" | "flag" | "deadline";
 export type itemsCreationAttributes = Optional<itemsAttributes, itemsOptionalAttributes>;
 
 export class items extends Model<itemsAttributes, itemsCreationAttributes> implements itemsAttributes {
@@ -24,6 +25,7 @@ export class items extends Model<itemsAttributes, itemsCreationAttributes> imple
   description!: string;
   createdBy!: number;
   flag!: 'active' | 'finished' | 'aborted';
+  deadline?: Date;
 
   // items belongsTo lists via listId
   list!: lists;
@@ -72,6 +74,10 @@ export class items extends Model<itemsAttributes, itemsCreationAttributes> imple
       type: DataTypes.ENUM('active','finished','aborted'),
       allowNull: false,
       defaultValue: "active"
+    },
+    deadline: {
+      type: DataTypes.DATE,
+      allowNull: true
     }
   }, {
     sequelize,

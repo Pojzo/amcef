@@ -14,6 +14,16 @@ module.exports = {
         type: Sequelize.STRING(50),
         allowNull: false,
       },
+      createdBy: {
+        type: Sequelize.INTEGER,
+        allowNull: false,
+        references: {
+          model: 'users',
+          key: 'userId',
+        },
+        onUpdate: 'CASCADE',
+        onDelete: 'CASCADE',
+      },
     }),
       await queryInterface.createTable('userLists', {
         listId: {
@@ -27,13 +37,13 @@ module.exports = {
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
         },
-        userid: {
+        userId: {
           type: Sequelize.INTEGER,
           primaryKey: true,
           allowNull: false,
           references: {
             model: 'users',
-            key: 'userid',
+            key: 'userId',
           },
           onUpdate: 'CASCADE',
           onDelete: 'CASCADE',
