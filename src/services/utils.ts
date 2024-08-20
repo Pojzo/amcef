@@ -6,6 +6,8 @@
 
 import jwt from 'jsonwebtoken';
 import { JWT_SECRET } from 'src/configs/jwtConfig';
+import { getUserFromToken } from 'src/middleware/utils';
+import { userExistsEmailService, userExistsIdService } from './authServices';
 
 /**
  * Sign a JWT token with the given payload.
@@ -25,5 +27,21 @@ export const signToken = (payload: JWTData) => {
         else {
             throw new Error('An error occurred in signToken');
         }
+    }
+}
+
+/**
+ * 
+ * @param token Token to verify
+ * @returns Promise that resolves to true if the token is valid, false otherwise.
+ */
+export const verifyToken = async (token: string): Promise<boolean> => {
+    try {
+        const userId = jwt.verify(token, JWT_SECRET) as string;
+
+        return await userExistsIdService(userId);
+    } catch (error: unknown) {
+        console.error(error);
+        return false;
     }
 }

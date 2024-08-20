@@ -6,11 +6,12 @@
 
 
 import { Request, Response } from 'express';
-import { createUserService, loginUserService, userExistsService } from 'src/services/authServices';
+import { createUserService, isLoggedInService, loginUserService, logoutUserService, userExistsEmailService, userExistsIdService } from 'src/services/authServices';
+import { verifyToken } from 'src/services/utils';
 
 export const handleRegister = async (req: Request, res: Response) => {
     try {
-        const userExists = await userExistsService(req.body.email);
+        const userExists = await userExistsEmailService(req.body.email);
         if (userExists) {
             return res.status(409).json({ message: "User already exists" });
         }
@@ -34,10 +35,6 @@ export const handleRegister = async (req: Request, res: Response) => {
 
 export const handleLogin = async (req: Request, res: Response) => {
     try {
-        const userExists = await userExistsService(req.body.email);
-        if (!userExists) {
-            return res.status(404).json({ message: "User not found" });
-        }
         const token = await loginUserService(req.body.email, req.body.password);
 
         return res.status(200).json({ token });
@@ -53,12 +50,33 @@ export const handleLogin = async (req: Request, res: Response) => {
 
 export const handleLogout = async (req: Request, res: Response) => {
     try {
-
+        if (!await userExistsIdService(req.body.userId)) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        await logoutUserService(req.body.userId);
+        res.status(200).json({ message: "User logged out" });
     } catch (error: unknown) {
         if (error instanceof Error) {
-            res.status(500).json({ message: "Internal Server Error", error });
+            res.status(500).json({ message: "Internal Server Error: " + error.message });
         } else {
             res.status(500).json({ message: "Internal Server Error" });
         }
+    }
+}
+
+export const handleIsLoggedIn = async (req: Request, res: Response) => {
+    console.log('checking if logged in');
+    try {
+        const authorizationHeader = req.headers.authorization;
+        if (typeof authorizationHeader !== "string") {
+            throw new Error("Authorization header is missing");
+        }
+        const token = authorizationHeader.split(" ")[1];
+
+        const isLoggedIn = await isLoggedInService(token);
+
+        return res.status(200).json({ isLoggedIn });
+    } catch (error: unknown) {
+        res.status(200).json({ isLoggedIn: false, error: error });
     }
 }

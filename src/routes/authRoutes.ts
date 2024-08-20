@@ -5,17 +5,15 @@
  */
 
 import express from "express";
-import { handleLogin, handleRegister } from "src/controllers/authController";
+import { handleIsLoggedIn, handleLogin, handleLogout, handleRegister } from "src/controllers/authController";
+import { authMiddleware } from "src/middleware/authMiddleware";
 
 const authRouter = express.Router();
 
 authRouter.post("/register", handleRegister);
-
 authRouter.post("/login", handleLogin);
+authRouter.post("/logout", authMiddleware, handleLogout);
 
-
-authRouter.post("/logout", (req, res) => {
-    res.send("Logout route");
-});
+authRouter.get('/is-logged-in', authMiddleware, handleIsLoggedIn);
 
 export default authRouter;
