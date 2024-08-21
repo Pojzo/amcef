@@ -11,15 +11,15 @@ import { DATABASE_NAME, HOST, PASSWORD, USER } from "./configs/dbConfig.js";
 
 // Initialize Sequelize instance
 const sequelize = new Sequelize(DATABASE_NAME, USER, PASSWORD, {
-    host: HOST,
-    dialect: "mysql", // 'mysql' or other dialect
-    logging: false,
+	host: HOST,
+	dialect: "mysql", // 'mysql' or other dialect
+	logging: false,
 });
 
 console.log(`Using database: ${DATABASE_NAME}`);
 
 // Import models generated with sequelize-auto
-import {initModels} from "../models/init-models";
+import { initModels } from "../models/init-models";
 
 // initialize models
 let models = initModels(sequelize);

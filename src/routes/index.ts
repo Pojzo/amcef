@@ -10,13 +10,13 @@ import userRouter from "./userRoutes";
 
 // Define routes and forward them to the appropriate router
 const Router = (server) => {
-    server.use("/auth", authRouter);
-    server.use("/lists", listRouter);
+	server.use("/auth", authRouter);
+	server.use("/lists", listRouter);
 
-    // test route
-    server.get("/", (req, res) => {
-        res.send("Hello World!");
-    });
-}
+	// test route
+	server.get("/", (req, res) => {
+		res.send("Hello World!");
+	});
+};
 
 export default Router;
