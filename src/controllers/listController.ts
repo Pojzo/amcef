@@ -13,12 +13,12 @@ import {
 	addItemToListService,
 	addUserToListService,
 	createListService,
+	CustomError,
 	deleteItemFromListService,
 	deleteListService,
 	getAllListsService,
 	getAllListUsersService,
 	getListService,
-	getMyListsService,
 	getUserByEmailService,
 	isUserCreatorService,
 	listBelongsToUserService,
@@ -28,10 +28,11 @@ import {
 } from "src/services/listServices";
 
 const handleError = (error: unknown, res: Response) => {
-	if (error instanceof Error) {
+	if (error instanceof CustomError) {
 		console.error(error);
 		res.status(500).json({
 			message: "Internal Server Error: " + error.message,
+			extendedMessage: error?.extendedMessage,
 		});
 	} else {
 		res.status(500).json({ message: "Internal Server Error" });
@@ -69,15 +70,15 @@ export const handleCreateList = async (req: Request, res: Response) => {
 	}
 };
 
-export const handleGetMyLists = async (req: Request, res: Response) => {
-	try {
-		const myLists = await getMyListsService(req.body.userId);
+// export const handleGetMyLists = async (req: Request, res: Response) => {
+// 	try {
+// 		const myLists = await getMyListsService(req.body.userId);
 
-		return res.status(200).json({ myLists });
-	} catch (error: unknown) {
-		handleError(error, res);
-	}
-};
+// 		return res.status(200).json({ myLists });
+// 	} catch (error: unknown) {
+// 		handleError(error, res);
+// 	}
+// };
 
 export const handleGetList = async (req: Request, res: Response) => {
 	try {
@@ -124,7 +125,7 @@ export const handleDeleteList = async (req: Request, res: Response) => {
 				.status(403)
 				.json({ message: "Only the owner of a list can delete it" });
 		}
-		await deleteListService(req.body.userId, listId);
+		await deleteListService(listId);
 		res.status(204).end();
 	} catch (err: unknown) {
 		handleError(err, res);

@@ -13,7 +13,6 @@ import {
 	handleDeleteList,
 	handleGetAllLists,
 	handleGetList,
-	handleGetMyLists,
 	handleRemoveUserFromList,
 	handleUpdateItemInList,
 } from "src/controllers/listController";
