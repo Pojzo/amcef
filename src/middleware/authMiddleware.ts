@@ -65,7 +65,6 @@ export const optionalAuthMiddleware = async (
 	if (typeof authorizationHeader !== "string") {
 		return next();
 	}
-	console.log("toto je authorization header", authorizationHeader);
 	// Extract the JWT token from the authorization header
 	const token = authorizationHeader.split(" ")[1];
 
@@ -73,7 +72,6 @@ export const optionalAuthMiddleware = async (
 	// Otherwise the userId is set to the userId from the token.
 	try {
 		const { userId } = await getUserFromToken(token);
-		console.log(userId, token, "tuto");
 		req.body.userId = userId;
 		next();
 	} catch (error: any) {

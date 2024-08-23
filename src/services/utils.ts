@@ -13,18 +13,13 @@ import { userExistsEmailService, userExistsIdService } from "./authServices";
  * Sign a JWT token with the given payload.
  *
  * @param payload Payload consisting of userId.
- * @returns Promise that resolves to a JWT token.
- * @throws Error if there is an error when signing the JWT token.
+ * @returns Promise that resolves to a JWT token if successful, null otherwise.
  */
-export const signToken = (payload: JWTData) => {
+export const signToken = (payload: JWTData): string | null => {
 	try {
 		return jwt.sign(payload, JWT_SECRET);
 	} catch (error: unknown) {
-		if (error instanceof Error) {
-			throw new Error(error.message);
-		} else {
-			throw new Error("An error occurred in signToken");
-		}
+		return null;
 	}
 };
 

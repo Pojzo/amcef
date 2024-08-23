@@ -17,6 +17,9 @@ import { itemsAttributes } from "models/items";
 import { usersAttributes } from "models/users";
 import { Op } from "sequelize";
 
+/**
+ * Custom error class that extends the Error class. Adds an extendedMessage field
+ */
 export class CustomError extends Error {
 	extendedMessage?: string;
 
@@ -27,6 +30,14 @@ export class CustomError extends Error {
 	}
 }
 
+/**
+ * Generic error handler for services. Throws a CustomError with a message.
+ * Uses CustomError to provide more information about the error, like the function
+ * in which the error occurred.
+ *
+ * @param error Error object
+ * @param functionOrigin String representing the function where the error occurred
+ */
 const handleServiceError = (error: unknown, functionOrigin: string): void => {
 	const extendedMessage = `An error occurred in ${functionOrigin}`;
 	if (error instanceof Error) {
@@ -37,7 +48,6 @@ const handleServiceError = (error: unknown, functionOrigin: string): void => {
 };
 
 const _transformItem = (item: ItemPropsRaw, userId?: number): ItemProps => {
-	console.log(userId, item.createdBy, userId === item.createdBy);
 	const { createdBy_user, createdBy, listId, ...rest } = item;
 	return {
 		...rest,
@@ -92,11 +102,13 @@ const _groupEmailByListId = (userLists: any[]): Record<string, string[]> => {
  * @returns List of lists
  * @throws Error if an error occurs during the database query
  */
-export const getAllListsService = async (
-	userId?: number
+export const getListsService = async (
+	userId?: number,
+	listId?: number
 ): Promise<ListProps[]> => {
 	try {
 		const result = await models.lists.findAll({
+			where: listId ? { listId } : {},
 			include: [
 				{
 					model: models.items,
@@ -190,7 +202,7 @@ export const isUserCreatorService = async (
 export const createListService = async (
 	userId: number,
 	title: string
-): Promise<void> => {
+): Promise<number> => {
 	try {
 		const list = await models.lists.create({ title, createdBy: userId });
 		const listId = list.listId;
@@ -200,6 +212,8 @@ export const createListService = async (
 		if (!list) {
 			throw new Error("List could not be created");
 		}
+
+		return listId;
 	} catch (err: unknown) {
 		console.error(err);
 		if (err instanceof Error) {
@@ -249,14 +263,7 @@ export const getAllListUsersService = async (
 
 export const getListService = async (listId: number) => {
 	try {
-		const list = await models.lists.findOne({
-			where: { listId },
-			raw: true,
-		});
-		if (!list) {
-			return null;
-		}
-		return list;
+		return getListsService;
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			throw new Error(error.message);

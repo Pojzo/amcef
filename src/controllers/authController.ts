@@ -14,6 +14,8 @@ import {
 	userExistsIdService,
 } from "src/services/authServices";
 import { signToken } from "src/services/utils";
+import { handleControllerError } from "./controllerError";
+import { getUserFromToken } from "src/middleware/utils";
 
 /**
  * Controller for the /auth/register route.
@@ -38,12 +40,8 @@ export const handleRegister = async (
 
 		res.status(201).json({ token, user });
 	} catch (error: unknown) {
-		if (error instanceof Error) {
-			console.error(error.message);
-			res.status(500).json({ message: error.message });
-		} else {
-			res.status(500).json({ message: "Internal Server Error" });
-		}
+		console.error(error);
+		handleControllerError(error, res);
 	}
 };
 
@@ -53,27 +51,26 @@ export const handleRegister = async (
  * @param req Request
  * @param res Response
  */
-export const handleLogin = async (
-	req: Request,
-	res: Response
-): Promise<void> => {
+export const handleLogin = async (req: Request, res: Response) => {
 	try {
+		const user = await userExistsEmailService(req.body.email);
+		if (!user) {
+			return res
+				.status(404)
+				.json({ message: "Invalid email or password" });
+		}
+
 		const token = await loginUserService(req.body.email, req.body.password);
+
+		if (!token) {
+			return res
+				.status(500)
+				.json({ message: "Token could not be validated" });
+		}
 
 		res.status(200).json({ token });
 	} catch (error: unknown) {
-		if (error instanceof Error) {
-			if (error.message === "User not found") {
-				res.status(404).json({ message: "User not found" });
-			} else {
-				res.status(500).json({
-					message: "Internal Server Error",
-					error,
-				});
-			}
-		} else {
-			res.status(500).json({ message: "Internal Server Error" });
-		}
+		handleControllerError(error, res);
 	}
 };
 
@@ -89,20 +86,15 @@ export const handleLogout = async (req: Request, res: Response) => {
 		if (!(await userExistsIdService(req.body.userId))) {
 			return res.status(404).json({ message: "User not found" });
 		}
-		if (await isLoggedInService(req.body.token)) {
+		if (!(await isLoggedInService(req.body.token))) {
 			return res.status(401).json({ message: "User is not logged in" });
 		}
 
 		await logoutUserService(req.body.userId);
+		console.log("successfully logged out");
 		res.status(200).json({ message: "User logged out" });
 	} catch (error: unknown) {
-		if (error instanceof Error) {
-			res.status(500).json({
-				message: "Internal Server Error: " + error.message,
-			});
-		} else {
-			res.status(500).json({ message: "Internal Server Error" });
-		}
+		handleControllerError(error, res);
 	}
 };
 
@@ -112,30 +104,30 @@ export const handleLogout = async (req: Request, res: Response) => {
  * @param req Request
  * @param res Response
  */
-export const handleIsLoggedIn = async (
-	req: Request,
-	res: Response
-): Promise<void> => {
+export const handleIsLoggedIn = async (req: Request, res: Response) => {
 	try {
 		const authorizationHeader = req.headers.authorization;
+
 		if (typeof authorizationHeader !== "string") {
-			res.status(401).json({
+			return res.status(200).json({
 				isLoggedIn: false,
 				message: "Authorization header is missing",
+			});
+		}
+		const split = authorizationHeader.split(" ");
+		if (split.length !== 2) {
+			res.status(200).json({
+				isLoggedIn: false,
+				message: "Authorization header is invalid",
 			});
 		}
 		const token = authorizationHeader.split(" ")[1];
 
 		const isLoggedIn = await isLoggedInService(token);
+		console.log("is actually logged in", isLoggedIn);
 
 		res.status(200).json({ isLoggedIn });
 	} catch (error: unknown) {
-		if (error instanceof Error) {
-			res.status(500).json({
-				message: "Internal Server Error: " + error.message,
-			});
-		} else {
-			res.status(500).json({ message: "Internal Server Error" });
-		}
+		handleControllerError(error, res);
 	}
 };

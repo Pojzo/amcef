@@ -11,7 +11,7 @@ import { Request, Response, NextFunction } from "express";
 const validateLogin = [
 	body("email").isEmail().withMessage("Invalid email address"),
 	body("password")
-		.isLength({ min: 6 })
+		.isLength({ min: 8 })
 		.withMessage("Password must be at least 6 characters long"),
 	(req: Request, res: Response, next: NextFunction) => {
 		const errors = validationResult(req);
@@ -28,7 +28,7 @@ const validateLogin = [
 const validateRegister = [
 	body("email").isEmail().withMessage("Invalid email address"),
 	body("password")
-		.isLength({ min: 6 })
+		.isLength({ min: 8 })
 		.withMessage("Password must be at least 6 characters long"),
 	(req: Request, res: Response, next: NextFunction) => {
 		const errors = validationResult(req);

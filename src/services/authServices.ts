@@ -8,7 +8,6 @@
 import { getUserFromToken } from "src/middleware/utils";
 import { signToken } from "./utils";
 import { models } from "src/db";
-import { raw } from "mysql2";
 
 /**
  * Checks if a user with the given email exists.
@@ -107,7 +106,7 @@ export const loginUserService = async (
 		const userId = user.userId;
 		const jwtTokenVersion = user.jwtTokenVersion;
 
-		const token = await signToken({ userId, jwtTokenVersion });
+		const token = signToken({ userId, jwtTokenVersion });
 
 		return token;
 	} catch (error: unknown) {
@@ -128,7 +127,11 @@ export const loginUserService = async (
 export const logoutUserService = async (userId: string): Promise<void> => {
 	try {
 		const user = await models.users.findOne({ where: { userId } });
-		user.jwtTokenVersion += 1;
+		const previousTokenVersion = user.get({ plain: true }).jwtTokenVersion;
+		const nextVersion = previousTokenVersion + 1;
+		user.set({
+			jwtTokenVersion: nextVersion,
+		});
 		await user.save();
 	} catch (error: unknown) {
 		if (error instanceof Error) {
@@ -141,9 +144,7 @@ export const logoutUserService = async (userId: string): Promise<void> => {
 
 export const isLoggedInService = async (token: string): Promise<boolean> => {
 	try {
-		// jwtTokenVersion is contained within the token
 		const { userId, jwtTokenVersion } = await getUserFromToken(token);
-
 		// tokenVersion is the version of the token in the database
 		const rawData = await models.users.findOne({
 			where: { userId },
@@ -153,8 +154,6 @@ export const isLoggedInService = async (token: string): Promise<boolean> => {
 		const data = rawData.get({ plain: true });
 
 		const dbTokenVersion = data.jwtTokenVersion;
-
-		console.log(jwtTokenVersion, dbTokenVersion);
 
 		if (jwtTokenVersion !== dbTokenVersion) {
 			return false;

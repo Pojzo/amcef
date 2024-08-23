@@ -34,6 +34,7 @@ export interface ListPropsRaw extends ListPropsBase {
 
 export interface ListProps extends ListPropsBase {
 	isCreator: boolean;
+	title: string;
 	creatorEmail: string | null;
 	items: ItemProps[];
 	users?: string[];

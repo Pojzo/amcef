@@ -29,6 +29,7 @@ listRouter.get("/:listId", handleGetList);
 
 // Creating and updating lists and items
 listRouter.post("/", authMiddleware, handleCreateList);
+
 listRouter.post("/:listId/items", authMiddleware, handleAddItemToList);
 listRouter.put(
 	"/:listId/items/:itemId",
@@ -38,6 +39,7 @@ listRouter.put(
 
 // Deleting lists and items
 listRouter.delete("/:listId", authMiddleware, handleDeleteList);
+
 listRouter.delete(
 	"/:listId/items/:itemId",
 	authMiddleware,

@@ -4,6 +4,11 @@
  * @date 19.8.2024
  */
 
+interface JWTData {
+	userId: string;
+	jwtTokenVersion: number;
+}
+
 import jwt from "jsonwebtoken";
 import { JWT_SECRET } from "src/configs/jwtConfig";
 
