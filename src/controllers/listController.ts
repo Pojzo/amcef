@@ -55,15 +55,10 @@ export const handleGetAllLists = async (req: Request, res: Response) => {
 
 export const handleCreateList = async (req: Request, res: Response) => {
 	try {
-		const list = await getListService(req.body.listId);
-		// if (list) {
-		// 	return res
-		// 		.status(409)
-		// 		.json({ message: "List with this title already exists" });
-		// }
 		const listId = await createListService(req.body.userId, req.body.title);
 
 		const responseList = await getListService(listId);
+		console.log(responseList);
 
 		return res.status(201).json({ list: responseList });
 	} catch (error: unknown) {
@@ -244,6 +239,12 @@ export const handleAddUserToList = async (req: Request, res: Response) => {
 		if (!(await userExistsEmailService(email))) {
 			return res.status(404).json({ message: "User not found" });
 		}
+		const { userId: targetId } = await getUserByEmailService(email);
+		if (await listBelongsToUserService(targetId, listId)) {
+			return res.status(409).json({
+				message: "User is already in the list",
+			});
+		}
 		console.error("Adding user to list", listId, email);
 
 		const list = await getListService(listId);
@@ -258,7 +259,7 @@ export const handleAddUserToList = async (req: Request, res: Response) => {
 		const { userId } = await getUserByEmailService(email);
 
 		await addUserToListService(listId, userId);
-		res.status(204).end();
+		res.status(201).end();
 	} catch (error: unknown) {
 		handleControllerError(error, res);
 	}

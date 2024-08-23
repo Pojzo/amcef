@@ -116,7 +116,7 @@ export const handleIsLoggedIn = async (req: Request, res: Response) => {
 		}
 		const split = authorizationHeader.split(" ");
 		if (split.length !== 2) {
-			res.status(200).json({
+			return res.status(200).json({
 				isLoggedIn: false,
 				message: "Authorization header is invalid",
 			});

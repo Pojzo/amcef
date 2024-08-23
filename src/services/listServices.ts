@@ -263,7 +263,9 @@ export const getAllListUsersService = async (
 
 export const getListService = async (listId: number) => {
 	try {
-		return getListsService;
+		// const result = await getListsService(null, listId);
+		// console.log(result[0]);
+		return (await getListsService(null, listId))[0];
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			throw new Error(error.message);
