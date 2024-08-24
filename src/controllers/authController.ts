@@ -13,28 +13,25 @@ import {
 	userExistsEmailService,
 	userExistsIdService,
 } from "src/services/authServices";
-import { signToken } from "src/services/utils";
 import { handleControllerError } from "./controllerError";
-import { getUserFromToken } from "src/middleware/utils";
 
 /**
- * Controller for the /auth/register route.
+ * Handles user registration for the /auth/register route.
  *
- * @param req Request object
- * @param res Response object
+ * @param req Express request object. The `req.body` should contain the `email` and `password` for the new user.
+ * @param res Express response object. Status codes:
+ *  - 201 if the registration is successful and a user is created. Returns a JSON object with the `token` and `user` information.
+ *  - 409 if the user already exists (conflict error).
+ *  - 500 if an internal server error occurs.
+ * @returns void
  */
-export const handleRegister = async (
-	req: Request,
-	res: Response
-): Promise<any> => {
+export const handleRegister = async (req: Request, res: Response) => {
 	try {
 		const userExists = await userExistsEmailService(req.body.email);
 		if (userExists) {
 			return res.status(409).json({ message: "User already exists" });
 		}
 
-		// If any of these functions fail, an error will be thrown inside the service functions
-		// and the catch block will handle it
 		const user = await createUserService(req.body.email, req.body.password);
 		const token = await loginUserService(req.body.email, req.body.password);
 
@@ -46,10 +43,13 @@ export const handleRegister = async (
 };
 
 /**
- * Controller for the /auth/login route.
+ * Handles user login for the /auth/login route.
  *
- * @param req Request
- * @param res Response
+ * @param req Express request object. The `req.body` should contain the `email` and `password` for the user trying to log in.
+ * @param res Express response object. Status codes:
+ *  - 200 if login is successful and a valid `token` is returned. The token should is included in the response body.
+ *  - 404 if the email or password is incorrect, indicating that the user was not found.
+ *  - 500 if there is an internal server error or if the token could not be validated.
  */
 export const handleLogin = async (req: Request, res: Response) => {
 	try {
@@ -75,11 +75,16 @@ export const handleLogin = async (req: Request, res: Response) => {
 };
 
 /**
- * Controller for the /auth/logout route.
+ * Handles the /auth/logout route to log out a user.
  *
- * @param req Request
- * @param res Response
- * @returns
+ * @param req Express request object. The `req.body` should include:
+ *  - `userId`: The ID of the user to log out.
+ *  - `token`: The authentication token of the user.
+ * @param res Express response object. Status codes:
+ *  - 200 if the user was logged out successfully. The response will include a success message.
+ *  - 404 if the user was not found.
+ *  - 401 if the user is not currently logged in.
+ * @returns void
  */
 export const handleLogout = async (req: Request, res: Response) => {
 	try {
@@ -99,10 +104,14 @@ export const handleLogout = async (req: Request, res: Response) => {
 };
 
 /**
- * Controller for the /auth/is-logged-in route.
+ * Handles the /auth/is-logged-in route to check if the user is logged in based on the provided token.
  *
- * @param req Request
- * @param res Response
+ * @param req Express request object. The `req.headers` should include an `Authorization` header containing the token.
+ * @param res Express response object. Status codes:
+ *  - 200 if the request is processed successfully. The response will include:
+ *    - `isLoggedIn`: A boolean indicating whether the token is valid and the user is logged in.
+ *    - `message`: A message indicating the status of the `Authorization` header if it was invalid or missing.
+ * @returns void
  */
 export const handleIsLoggedIn = async (req: Request, res: Response) => {
 	try {
@@ -124,7 +133,6 @@ export const handleIsLoggedIn = async (req: Request, res: Response) => {
 		const token = authorizationHeader.split(" ")[1];
 
 		const isLoggedIn = await isLoggedInService(token);
-		console.log("is actually logged in", isLoggedIn);
 
 		res.status(200).json({ isLoggedIn });
 	} catch (error: unknown) {
