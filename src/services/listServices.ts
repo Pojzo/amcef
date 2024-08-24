@@ -4,7 +4,7 @@
  * @date 22.8.2024
  */
 
-import { models } from "src/db";
+import sequelize, { models } from "src/db";
 import { CreateItem } from "src/types";
 import {
 	ItemProps,
@@ -203,6 +203,7 @@ export const createListService = async (
 	userId: number,
 	title: string
 ): Promise<number> => {
+	const transaction = await sequelize.transaction();
 	try {
 		const list = await models.lists.create({ title, createdBy: userId });
 		const listId = list.listId;
@@ -213,8 +214,10 @@ export const createListService = async (
 			throw new Error("List could not be created");
 		}
 
+		transaction.commit();
 		return listId;
 	} catch (err: unknown) {
+		transaction.rollback();
 		console.error(err);
 		if (err instanceof Error) {
 			throw new Error(err.message);
@@ -309,10 +312,14 @@ export const updateListService = async (
  * @throws Error if an error occurs during the database query
  */
 export const deleteListService = async (listId: number): Promise<void> => {
+	const transaction = await sequelize.transaction();
 	try {
-		await models.userLists.destroy({ where: { listId } });
-		await models.lists.destroy({ where: { listId } });
+		await models.userLists.destroy({ where: { listId }, transaction });
+		await models.lists.destroy({ where: { listId }, transaction });
+
+		await transaction.commit();
 	} catch (error: unknown) {
+		await transaction.rollback();
 		if (error instanceof Error) {
 			throw new Error(error.message);
 		} else {
