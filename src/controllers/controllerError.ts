@@ -12,7 +12,7 @@ import { Response } from "express";
  * "Internal Server Error" message is sent.
  *
  * @param error Error or CustomError object
- * @param res
+ * @param res Express response object
  */
 export const handleControllerError = (error: unknown, res: Response) => {
 	if (error instanceof CustomError) {
