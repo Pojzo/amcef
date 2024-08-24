@@ -45,7 +45,6 @@ export const handleGetAllLists = async (req: Request, res: Response) => {
 		lists.forEach((list) => {
 			list.users = users[list.listId];
 		});
-		console.log(lists);
 
 		res.status(200).json({ lists });
 	} catch (error: unknown) {
@@ -58,7 +57,6 @@ export const handleCreateList = async (req: Request, res: Response) => {
 		const listId = await createListService(req.body.userId, req.body.title);
 
 		const responseList = await getListService(listId);
-		console.log(responseList);
 
 		return res.status(201).json({ list: responseList });
 	} catch (error: unknown) {
@@ -165,7 +163,7 @@ export const handleAddItemToList = async (req: Request, res: Response) => {
 		req.body.listId = listId;
 		await addItemToListService(req.body);
 
-		res.status(200).json({ message: "OK" });
+		res.status(201).json({ message: "OK" });
 	} catch (error: unknown) {
 		handleControllerError(error, res);
 	}
@@ -245,7 +243,6 @@ export const handleAddUserToList = async (req: Request, res: Response) => {
 				message: "User is already in the list",
 			});
 		}
-		console.error("Adding user to list", listId, email);
 
 		const list = await getListService(listId);
 		if (!list) {

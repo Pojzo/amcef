@@ -17,3 +17,10 @@ export interface CreateItem {
 	deadline: string;
 	flag: ItemFlag;
 }
+
+export interface UpdateItemRequest {
+	title: string;
+	description: string;
+	deadline: string;
+	flag: ItemFlag;
+}

@@ -6,6 +6,7 @@
 
 import { Request, Response, NextFunction } from "express";
 import { getUserFromToken } from "./utils";
+import { isLoggedInService } from "src/services/authServices";
 
 /**
  * Checks for the presence of the authorization header and extracts the JWT token from it.
@@ -32,6 +33,10 @@ export const authMiddleware = async (
 		const token = authorizationHeader.split(" ")[1];
 
 		const { userId } = await getUserFromToken(token);
+		const isLoggedIn = await isLoggedInService(token);
+		if (!isLoggedIn) {
+			throw new Error("User is not logged");
+		}
 
 		req.body.userId = userId;
 		req.body.token = token;

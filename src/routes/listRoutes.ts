@@ -5,6 +5,8 @@
  */
 
 import express from "express";
+
+// Controller functions
 import {
 	handleAddItemToList,
 	handleAddUserToList,
@@ -16,41 +18,81 @@ import {
 	handleRemoveUserFromList,
 	handleUpdateItemInList,
 } from "src/controllers/listController";
+
+// Auth middleware
 import {
 	authMiddleware,
 	optionalAuthMiddleware,
 } from "src/middleware/authMiddleware";
 
+// Validation functions
+import {
+	validateAddUserToList,
+	validateCreateItem,
+	validateCreateList,
+	validateDeleteItem,
+	validateDeleteList,
+	validateListId,
+	validateRemoveUserFromList,
+	validateUpdateItem,
+} from "src/middleware/listValidator";
+
 const listRouter = express.Router();
 
-// Getting and creating lists
+// Get all lists
 listRouter.get("/", optionalAuthMiddleware, handleGetAllLists);
-listRouter.get("/:listId", handleGetList);
 
-// Creating and updating lists and items
-listRouter.post("/", authMiddleware, handleCreateList);
+// Get a specific list by id
+listRouter.get("/:listId", validateListId, handleGetList);
 
-listRouter.post("/:listId/items", authMiddleware, handleAddItemToList);
+// Create a new list
+listRouter.post("/", authMiddleware, validateCreateList, handleCreateList);
+
+// Add a new item to a list
+listRouter.post(
+	"/:listId/items",
+	authMiddleware,
+	validateCreateItem,
+	handleAddItemToList
+);
+
+// Update an item in a list
 listRouter.put(
 	"/:listId/items/:itemId",
 	authMiddleware,
+	validateUpdateItem,
 	handleUpdateItemInList
 );
 
-// Deleting lists and items
-listRouter.delete("/:listId", authMiddleware, handleDeleteList);
+// Delete a list
+listRouter.delete(
+	"/:listId",
+	authMiddleware,
+	validateDeleteList,
+	handleDeleteList
+);
 
+// Delete an item from a list
 listRouter.delete(
 	"/:listId/items/:itemId",
 	authMiddleware,
+	validateDeleteItem,
 	handleDeleteItemFromList
 );
 
-// Managing users in lists
-listRouter.post("/:listId/users", authMiddleware, handleAddUserToList);
+// Add a user to a list
+listRouter.post(
+	"/:listId/users",
+	authMiddleware,
+	validateAddUserToList,
+	handleAddUserToList
+);
+
+// Remove a user from a list
 listRouter.delete(
 	"/:listId/users/:email",
 	authMiddleware,
+	validateRemoveUserFromList,
 	handleRemoveUserFromList
 );
 

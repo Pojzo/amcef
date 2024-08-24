@@ -1,5 +1,4 @@
-import { URL } from "./spec.cy";
-
+import { URL } from "./config";
 const routes = [
 	{
 		method: "POST",
@@ -53,7 +52,7 @@ describe("Protected routes after logout", () => {
 		cy.request({
 			url: `${URL}/auth/delete/example@gmail.com`,
 			method: "POST",
-			failOnStatusCode: false, // This might fail if the token is invalid after logout
+			failOnStatusCode: false,
 		});
 
 		const registerData = {
@@ -61,14 +60,12 @@ describe("Protected routes after logout", () => {
 			password: "Password",
 		};
 
-		// Register the user and get the token
 		cy.request({
 			url: `${URL}/auth/register`,
 			method: "POST",
 			body: registerData,
 		}).then((response) => {
 			token = response.body.token;
-			// Log out the user after registration
 			return cy.request({
 				url: `${URL}/auth/logout`,
 				method: "POST",
@@ -79,7 +76,6 @@ describe("Protected routes after logout", () => {
 		});
 	});
 
-	// Iterate through each route and test them after logout
 	routes.forEach((route) => {
 		if (route.path.includes("logout")) return;
 		it(`Check ${route.description} after logout`, () => {
@@ -91,12 +87,11 @@ describe("Protected routes after logout", () => {
 				},
 				failOnStatusCode: false,
 			}).then((response) => {
-				expect(response.status).to.eq(401); // Expecting Unauthorized status
+				expect(response.status).to.eq(401);
 			});
 		});
 	});
 
-	// Clean up after tests
 	after(() => {
 		cy.request({
 			url: `${URL}/auth/delete/example2@gmail.com`,
@@ -104,7 +99,7 @@ describe("Protected routes after logout", () => {
 			headers: {
 				Authorization: `Bearer ${token}`,
 			},
-			failOnStatusCode: false, // This might fail if the token is invalid after logout
+			failOnStatusCode: false,
 		});
 	});
 });

@@ -1,5 +1,4 @@
-export const URL = "http://localhost:8888";
-
+import { URL } from "./config";
 let i = 0;
 const usersCreated = [];
 

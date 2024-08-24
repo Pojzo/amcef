@@ -12,7 +12,7 @@ import { DATABASE_NAME, HOST, PASSWORD, USER } from "./configs/dbConfig.js";
 // Initialize Sequelize instance
 const sequelize = new Sequelize(DATABASE_NAME, USER, PASSWORD, {
 	host: HOST,
-	dialect: "mysql", // 'mysql' or other dialect
+	dialect: "mysql",
 	logging: false,
 });
 
