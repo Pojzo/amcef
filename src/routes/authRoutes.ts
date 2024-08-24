@@ -17,9 +17,17 @@ import { validateLogin, validateRegister } from "src/middleware/userValidator";
 
 const authRouter = express.Router();
 
+// Register a new user
 authRouter.post("/register", validateRegister, handleRegister);
+
+// Login a user
 authRouter.post("/login", validateLogin, handleLogin);
+
+// Logout a user
 authRouter.post("/logout", authMiddleware, handleLogout);
+
+// Check if a user is logged in
+authRouter.get("/is-logged-in", handleIsLoggedIn);
 
 // just for testing
 authRouter.post("/delete", async (req, res) => {
@@ -35,7 +43,5 @@ authRouter.post("/delete", async (req, res) => {
 		res.status(200).json({ message: "Error deleting user" });
 	}
 });
-
-authRouter.get("/is-logged-in", handleIsLoggedIn);
 
 export default authRouter;
