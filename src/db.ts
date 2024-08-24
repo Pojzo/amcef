@@ -16,6 +16,10 @@ const sequelize = new Sequelize(DATABASE_NAME, USER, PASSWORD, {
 	logging: false,
 });
 
+sequelize.sync({
+	force: true,
+});
+
 console.log(`Using database: ${DATABASE_NAME}`);
 
 // Import models generated with sequelize-auto

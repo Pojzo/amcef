@@ -118,6 +118,8 @@ export class lists
 						model: "users",
 						key: "userId",
 					},
+					onDelete: "CASCADE",
+					onUpdate: "CASCADE",
 				},
 			},
 			{

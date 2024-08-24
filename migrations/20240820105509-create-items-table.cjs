@@ -9,6 +9,7 @@ module.exports = {
 				primaryKey: true,
 				autoIncrement: true,
 				allowNull: false,
+				notNull: true,
 			},
 			listId: {
 				type: Sequelize.INTEGER,

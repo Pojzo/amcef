@@ -50,8 +50,11 @@ describe("Protected routes after logout", () => {
 	let token;
 	before(() => {
 		cy.request({
-			url: `${URL}/auth/delete/example@gmail.com`,
+			url: `${URL}/auth/delete`,
 			method: "POST",
+			body: {
+				email: "example2@gmail.com",
+			},
 			failOnStatusCode: false,
 		});
 
@@ -94,10 +97,13 @@ describe("Protected routes after logout", () => {
 
 	after(() => {
 		cy.request({
-			url: `${URL}/auth/delete/example2@gmail.com`,
+			url: `${URL}/auth/delete`,
 			method: "POST",
 			headers: {
 				Authorization: `Bearer ${token}`,
+			},
+			body: {
+				email: "example2@gmail.com2",
 			},
 			failOnStatusCode: false,
 		});

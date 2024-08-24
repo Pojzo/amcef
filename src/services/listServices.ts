@@ -348,9 +348,10 @@ export const deleteItemFromListService = async (
  * @param item Item to add to the list, contains listId, title, description, userId, flag, and deadline
  * @throws Error if an error occurs during the database query
  */
-export const addItemToListService = async (item: CreateItem): Promise<void> => {
+export const addItemToListService = async (item: CreateItem) => {
 	try {
-		await models.items.create({
+		console.log(item.userId);
+		const newItem = await models.items.create({
 			listId: item.listId,
 			title: item.title,
 			description: item.description,
@@ -358,6 +359,18 @@ export const addItemToListService = async (item: CreateItem): Promise<void> => {
 			flag: item.flag,
 			deadline: new Date(item.deadline),
 		});
+		// const newItem = await models.items.create({
+		// 	listId: item.listId,
+		// 	title: "title",
+		// 	description: "description",
+		// 	createdBy: item.userId,
+		// 	flag: "active",
+		// 	deadline: new Date(),
+		// });
+
+		console.log(newItem.getDataValue("itemId"));
+
+		return newItem.get({ plain: true });
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			throw new Error(error.message);
@@ -399,6 +412,17 @@ export const updateItemInListService = async (
 		} else {
 			throw new Error("An error occurred in updateItemInListService");
 		}
+	}
+};
+export const getItemService = async (itemId: number) => {
+	try {
+		const item = await models.items.findOne({ where: { itemId } });
+		if (!item) {
+			return null;
+		}
+		return item.get({ plain: true });
+	} catch (error: unknown) {
+		handleServiceError(error, "getItemService");
 	}
 };
 

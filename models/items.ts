@@ -60,6 +60,8 @@ export class items
 						model: "lists",
 						key: "listId",
 					},
+					onDelete: "CASCADE",
+					onUpdate: "CASCADE",
 				},
 				title: {
 					type: DataTypes.STRING(50),
@@ -76,6 +78,8 @@ export class items
 						model: "users",
 						key: "userId",
 					},
+					onDelete: "CASCADE",
+					onUpdate: "CASCADE",
 				},
 				flag: {
 					type: DataTypes.ENUM("active", "finished", "aborted"),

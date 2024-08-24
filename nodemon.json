@@ -2,5 +2,5 @@
 	"watch": ["src"],
 	"ext": "ts",
 	"ignore": ["src/**/*.test.ts", "src/**/*.test.tsx"],
-	"exec": "npx tsx src/server.ts"
+	"exec": "npm run kill-server && npx tsx src/server.ts"
 }

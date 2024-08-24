@@ -31,7 +31,7 @@ authRouter.post("/delete", async (req, res) => {
 		await models.users.destroy({ where: { email } });
 		res.status(200).json({ message: "User deleted" });
 	} catch (error: unknown) {
-		console.error(error);
+		console.error("toto je error", error);
 		res.status(200).json({ message: "Error deleting user" });
 	}
 });

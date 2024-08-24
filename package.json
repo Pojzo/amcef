@@ -22,9 +22,9 @@
 		"db-seed-prod": "npx sequelize db:seed:all --env=production",
 		"db-init-prod": "npm run db-drop-prod && npm run db-create-prod && npm run db-migrate-prod && npm run db-seed-prod",
 		"db-drop-prod": "npx sequelize db:drop --env=production",
-		"db-seq-auto": "npx sequelize-auto -o ./models -l ts esm -d database_development -h 127.0.0.1 -u root -x Root12345 -e mysql",
+		"db-seq-auto": "npx sequelize-auto -o ./models -l ts esm -d database_test -h 127.0.0.1 -u root -x Root12345 -e mysql",
 		"cypress-test": "npx cypress run --record --key 16a84ceb-315d-4f63-908c-8a9b18ffbae3",
-		"run-test": "npm run db-init-test; npx nodemon& npm run cypress-test; npm run kill-server"
+		"run-test-full": "npm run db-init-test; npx nodemon& npm run cypress-test; npm run kill-server"
 	},
 	"keywords": [],
 	"author": "",
@@ -40,6 +40,7 @@
 		"jsonwebtoken": "^9.0.2",
 		"mysql2": "^3.11.0",
 		"nodemon": "^3.1.4",
+		"sequelize": "^6.37.3",
 		"sequelize-auto": "^0.8.8",
 		"sequelize-cli": "^6.6.2",
 		"sequelize-typescript": "^2.1.6",

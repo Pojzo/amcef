@@ -16,6 +16,7 @@ import {
 	deleteItemFromListService,
 	deleteListService,
 	getAllListUsersService,
+	getItemService,
 	getListService,
 	getListsService,
 	getUserByEmailService,
@@ -153,6 +154,7 @@ export const handleDeleteList = async (req: Request, res: Response) => {
  */
 export const handleAddItemToList = async (req: Request, res: Response) => {
 	const listId = parseInt(req.params.listId);
+	console.log("adding;", req.body, listId);
 	try {
 		if (!(await userExistsIdService(req.body.userId))) {
 			return res.status(404).json({ message: "User not found" });
@@ -161,9 +163,11 @@ export const handleAddItemToList = async (req: Request, res: Response) => {
 			return res.status(404).json({ message: "List not found" });
 		}
 		req.body.listId = listId;
-		await addItemToListService(req.body);
+		console.log(req.body);
+		const newItem = await addItemToListService(req.body);
 
-		res.status(201).json({ message: "OK" });
+		console.log(newItem);
+		res.status(201).json({ message: "OK", item: newItem });
 	} catch (error: unknown) {
 		handleControllerError(error, res);
 	}
@@ -220,6 +224,10 @@ export const handleDeleteItemFromList = async (req: Request, res: Response) => {
 			return res.status(403).json({
 				message: "Only the owner of a list can delete its items",
 			});
+		}
+		const item = await getItemService(parseInt(itemId));
+		if (!item) {
+			return res.status(404).json({ message: "Item not found" });
 		}
 
 		await deleteItemFromListService(parseInt(itemId));
