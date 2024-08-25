@@ -69,6 +69,7 @@ export const handleGetAllLists = async (req: Request, res: Response) => {
  * @param res Express response object. Status codes:
  *  - 201 with the created list object if the list was created successfully
  *  - 400 if there is a validation error or missing parameters (not shown but recommended for handling invalid requests)
+ *  - 500 if an internal server error occurred
  * @returns void
  */
 export const handleCreateList = async (req: Request, res: Response) => {
@@ -114,6 +115,7 @@ export const handleGetList = async (req: Request, res: Response) => {
  * @param req Express request object. The `req.params` should contain the `listId`, and `req.body` should contain the new `title` of the list.
  * @param res Express response object. Status codes:
  *  - 204 if the list was updated successfully
+ *  - 403 if the user is not the creator of the list
  *  - 404 if the list was not found
  * @returns void
  */
@@ -124,8 +126,15 @@ export const handleUpdateList = async (req: Request, res: Response) => {
 		if (!listExists) {
 			return res.status(404).json({ message: "List not found" });
 		}
+		if (!(await isUserCreatorService(req.body.userId, listId))) {
+			return res.status(403).json({
+				message: "Only the owner of a list can update it",
+			});
+		}
 		await updateListService(listId, req.body.title);
-		res.status(204).end();
+		const updatedList = await getListService(listId);
+		console.log(updatedList, req.body.title);
+		res.status(201).json({ list: updatedList });
 	} catch (error: unknown) {
 		handleControllerError(error, res);
 	}
@@ -137,8 +146,8 @@ export const handleUpdateList = async (req: Request, res: Response) => {
  * @param req Express request object. The `req.params` should contain the `listId`, and `req.body` should contain the `userId`.
  * @param res Express response object. Status codes:
  *  - 204 if the list was deleted successfully
- *  - 404 if the list was not found
  *  - 403 if the user is not the creator of the list
+ *  - 404 if the list was not found
  *  - 500 if an internal server error occurred
  * @returns void
  */
@@ -170,6 +179,106 @@ export const handleDeleteList = async (req: Request, res: Response) => {
 	}
 };
 
+/**
+ * Adds a user to a list. The user must be the owner of the list to perform this action.
+ *
+ * @param req Express request object. The `req.params` should contain:
+ *            - `listId`: ID of the list to which the user will be added.
+ *            The `req.body` should contain:
+ *            - `email`: Email of the user to be added to the list.
+ *            - `userId`: ID of the user making the request.
+ * @param res Express response object. Status codes:
+ *  - 201 if the user was added successfully.
+ *  - 404 if the user or list was not found.
+ *  - 403 if the request user is not the owner of the list.
+ *  - 409 if the user is already in the list.
+ *  - 500 if an internal server error occurred.
+ * @returns void
+ */
+export const handleAddUserToList = async (req: Request, res: Response) => {
+	try {
+		const listId = parseInt(req.params.listId);
+		const email = req.body.email;
+
+		if (!(await userExistsEmailService(email))) {
+			return res.status(404).json({ message: "User not found" });
+		}
+		const { userId: targetId } = await getUserByEmailService(email);
+		if (await listBelongsToUserService(targetId, listId)) {
+			return res.status(409).json({
+				message: "User is already in the list",
+			});
+		}
+
+		const list = await getListService(listId, req.body.userId);
+
+		if (!list) {
+			return res.status(404).json({ message: "List not found" });
+		}
+		if (!list.isCreator) {
+			return res
+				.status(403)
+				.json({ message: "Only the owner of a list can add users" });
+		}
+		const { userId } = await getUserByEmailService(email);
+
+		await addUserToListService(listId, userId);
+		res.status(201).end();
+	} catch (error: unknown) {
+		handleControllerError(error, res);
+	}
+};
+
+/**
+ * Removes a user from a list.
+ *
+ * @param req Express request object. The `listId` should be in the URL parameters, and the `email` of the user to be removed should also be in the URL parameters.
+ * @param res Express response object. Status codes:
+ *  - 204 if the user was successfully removed from the list,
+ *  - 403 if the user is not the owner of the list,
+ *  - 404 if the user was not found or is not in the list,
+ *  - 500 if an internal server error occurred.
+ * @returns void
+ */
+export const handleRemoveUserFromList = async (req: Request, res: Response) => {
+	try {
+		const listId = parseInt(req.params.listId);
+		const email = req.params.email;
+
+		if (!(await userExistsEmailService(email))) {
+			return res.status(404).json({ message: "User not found" });
+		}
+		if (!(await isUserCreatorService(req.body.userId, listId))) {
+			return res.status(403).json({
+				message: "Only the owner of a list can remove users",
+			});
+		}
+
+		const users = await getAllListUsersService([listId]);
+		if (!users[listId]?.includes(email)) {
+			return res.status(404).json({ message: "User not in list" });
+		}
+
+		await removeUserFromListService(listId, email);
+
+		res.status(204).end();
+	} catch (error: unknown) {
+		handleControllerError(error, res);
+	}
+};
+
+/**
+ * Handles retrieving all items in a list.
+ *
+ * @param req Express request object. The `req.params` should contain the `listId`. `userId` is optional.
+ * 		      If provided, the response will contain additional information like isCreator
+ * @param res Express response object. Status codes:
+ * 				- 200 if the items were found and returned successfully
+ * 				- 404 if the list was not found
+ * 				- 500 if an internal server error occurred
+ *
+ * @returns void
+ */
 export const handleGetAllItemsInList = async (req: Request, res: Response) => {
 	try {
 		const listId = parseInt(req.params.listId);
@@ -180,35 +289,6 @@ export const handleGetAllItemsInList = async (req: Request, res: Response) => {
 		const items = list.items;
 
 		res.status(200).json({ message: "OK", items });
-	} catch (error: unknown) {
-		handleControllerError(error, res);
-	}
-};
-
-/**
- * Retrieves a single item from a list.
- *
- * @param req Express request object. The `req.params` should contain the `listId` and `itemId`.
- * @param res Express response. Status codes:
- * 				- 200 if the item was found and returned successfull
- * 				- 404 if the list or item was not found, or the item does not belong to the list
- * 				- 500 if an internal server error occurred
- */
-export const handleGetItemInList = async (req: Request, res: Response) => {
-	try {
-		const listId = parseInt(req.params.listId);
-		const itemId = parseInt(req.params.itemId);
-		if (!(await getListService(listId))) {
-			return res.status(404).json({ message: "List not found" });
-		}
-		if (!(await itemBelongsToListService(itemId, listId))) {
-			return res.status(404).json({ message: "Item not found" });
-		}
-		const item = await getItemService(itemId, req.body.userId);
-		if (!item) {
-			return res.status(404).json({ message: "Item not found" });
-		}
-		res.status(200).json({ message: "OK", item });
 	} catch (error: unknown) {
 		handleControllerError(error, res);
 	}
@@ -250,7 +330,34 @@ export const handleAddItemToList = async (req: Request, res: Response) => {
 	}
 };
 
-export const handleGetItemsInList = async (req: Request, res: Response) => {};
+/**
+ * Retrieves a single item from a list.
+ *
+ * @param req Express request object. The `req.params` should contain the `listId` and `itemId`.
+ * @param res Express response. Status codes:
+ * 				- 200 if the item was found and returned successfull
+ * 				- 404 if the list or item was not found, or the item does not belong to the list
+ * 				- 500 if an internal server error occurred
+ */
+export const handleGetItemInList = async (req: Request, res: Response) => {
+	try {
+		const listId = parseInt(req.params.listId);
+		const itemId = parseInt(req.params.itemId);
+		if (!(await getListService(listId))) {
+			return res.status(404).json({ message: "List not found" });
+		}
+		if (!(await itemBelongsToListService(itemId, listId))) {
+			return res.status(404).json({ message: "Item not found" });
+		}
+		const item = await getItemService(itemId, req.body.userId);
+		if (!item) {
+			return res.status(404).json({ message: "Item not found" });
+		}
+		res.status(200).json({ message: "OK", item });
+	} catch (error: unknown) {
+		handleControllerError(error, res);
+	}
+};
 
 /**
  * Handles updating an item in a list.
@@ -330,88 +437,6 @@ export const handleDeleteItemFromList = async (req: Request, res: Response) => {
 		}
 
 		await deleteItemFromListService(parseInt(itemId));
-		res.status(204).end();
-	} catch (error: unknown) {
-		handleControllerError(error, res);
-	}
-};
-
-/**
- * Adds a user to a list. The user must be the owner of the list to perform this action.
- *
- * @param req Express request object. The `req.params` should contain:
- *            - `listId`: ID of the list to which the user will be added.
- *            The `req.body` should contain:
- *            - `email`: Email of the user to be added to the list.
- *            - `userId`: ID of the user making the request.
- * @param res Express response object. Status codes:
- *  - 201 if the user was added successfully.
- *  - 404 if the user or list was not found.
- *  - 403 if the request user is not the owner of the list.
- *  - 409 if the user is already in the list.
- *  - 500 if an internal server error occurred.
- * @returns void
- */
-export const handleAddUserToList = async (req: Request, res: Response) => {
-	try {
-		const listId = parseInt(req.params.listId);
-		const email = req.body.email;
-
-		if (!(await userExistsEmailService(email))) {
-			return res.status(404).json({ message: "User not found" });
-		}
-		const { userId: targetId } = await getUserByEmailService(email);
-		if (await listBelongsToUserService(targetId, listId)) {
-			return res.status(409).json({
-				message: "User is already in the list",
-			});
-		}
-
-		const list = await getListService(listId, req.body.userId);
-
-		if (!list) {
-			return res.status(404).json({ message: "List not found" });
-		}
-		if (!list.isCreator) {
-			return res
-				.status(403)
-				.json({ message: "Only the owner of a list can add users" });
-		}
-		const { userId } = await getUserByEmailService(email);
-
-		await addUserToListService(listId, userId);
-		res.status(201).end();
-	} catch (error: unknown) {
-		handleControllerError(error, res);
-	}
-};
-
-/**
- * Removes a user from a list.
- *
- * @param req Express request object. The `listId` should be in the URL parameters, and the `email` of the user to be removed should also be in the URL parameters.
- * @param res Express response object. Status codes:
- *  - 204 if the user was successfully removed from the list,
- *  - 404 if the user was not found or is not in the list,
- *  - 500 if an internal server error occurred.
- * @returns void
- */
-export const handleRemoveUserFromList = async (req: Request, res: Response) => {
-	try {
-		const listId = parseInt(req.params.listId);
-		const email = req.params.email;
-
-		if (!(await userExistsEmailService(email))) {
-			return res.status(404).json({ message: "User not found" });
-		}
-
-		const users = await getAllListUsersService([listId]);
-		if (!users[listId]?.includes(email)) {
-			return res.status(404).json({ message: "User not in list" });
-		}
-
-		await removeUserFromListService(listId, email);
-
 		res.status(204).end();
 	} catch (error: unknown) {
 		handleControllerError(error, res);
