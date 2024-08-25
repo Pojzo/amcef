@@ -8,6 +8,7 @@
 import { getUserFromToken } from "src/middleware/utils";
 import { signToken } from "./utils";
 import { models } from "src/db";
+import { users } from "models/users";
 
 /**
  * Checks if a user with the given email exists.
@@ -65,7 +66,7 @@ export const userExistsIdService = async (
 export const createUserService = async (
 	email: string,
 	password: string
-): Promise<void> => {
+): Promise<users> => {
 	try {
 		const user = models.users.create({ email, password });
 		if (!user) {

@@ -13,7 +13,7 @@ import {
 } from "src/controllers/authController";
 import { models } from "src/db";
 import { authMiddleware } from "src/middleware/authMiddleware";
-import { validateLogin, validateRegister } from "src/middleware/userValidator";
+import { validateLogin, validateRegister } from "src/middleware/authValidator";
 
 const authRouter = express.Router();
 

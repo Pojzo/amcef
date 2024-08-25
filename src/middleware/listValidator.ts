@@ -135,3 +135,17 @@ export const validateGetItem = [
 		handleValidationErrors(req, res, next);
 	},
 ];
+
+export const validateUpdateList = [
+	check("listId")
+		.isInt({ gt: 0 })
+		.withMessage("listId must be a positive integer"),
+	body("title")
+		.isString()
+		.withMessage("title must be a string")
+		.notEmpty()
+		.withMessage("title must not be empty"),
+	(req: Request, res: Response, next: NextFunction) => {
+		handleValidationErrors(req, res, next);
+	},
+];

@@ -113,6 +113,39 @@ describe("List items", () => {
 		});
 	});
 
+	it("Update list", () => {
+		const updatedList = {
+			title: "Updated title",
+		};
+		cy.request({
+			url: `${URL}/lists/${testListId}`,
+			method: "PUT",
+			body: updatedList,
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		}).then((response) => {
+			expect(response.status).to.eq(201);
+			expect(response.body.list.title).to.eq(updatedList.title);
+		});
+	});
+	it("Update non-existent list", () => {
+		const updatedList = {
+			title: "Updated title",
+		};
+		cy.request({
+			url: `${URL}/lists/324234`,
+			method: "PUT",
+			body: updatedList,
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+			failOnStatusCode: false,
+		}).then((response) => {
+			expect(response.status).to.eq(404);
+		});
+	});
+
 	after(() => {
 		cy.request({
 			url: `${URL}/lists/${testListId}`,
@@ -142,9 +175,11 @@ const itemDeadlines = [
 
 const itemFlags = ["active", "finished", "aborted", "active", "active"];
 
-describe("Test item retrieval", () => {
+describe("Test item retrieval and updating", () => {
 	const userEmail = "item@gmail.com";
+	const userEmail2 = "item2@gmail.com";
 	let token;
+	let token2;
 	let listId;
 	let itemIds = [];
 
@@ -154,6 +189,19 @@ describe("Test item retrieval", () => {
 			password: "Password",
 		};
 
+		const user2 = {
+			email: userEmail2,
+			password: "Password",
+		};
+
+		cy.request({
+			url: `${URL}/auth/register`,
+			method: "POST",
+			body: user2,
+		}).then((response) => {
+			token2 = response.body.token;
+		});
+
 		// Register user and create a list, then handle item creation
 		cy.request({
 			url: `${URL}/auth/register`,
@@ -162,7 +210,6 @@ describe("Test item retrieval", () => {
 		}).then((response) => {
 			token = response.body.token;
 
-			// Create a list
 			cy.request({
 				url: `${URL}/lists`,
 				method: "POST",
@@ -173,7 +220,6 @@ describe("Test item retrieval", () => {
 			}).then((response) => {
 				listId = response.body.list.listId;
 
-				// Create items
 				const itemCreationRequests = itemTitles.map((title, i) => {
 					const item = {
 						title: title,
@@ -182,7 +228,6 @@ describe("Test item retrieval", () => {
 						flag: itemFlags[i],
 					};
 
-					// Return Cypress command for each item creation
 					return cy
 						.request({
 							url: `${URL}/lists/${listId}/items`,
@@ -193,16 +238,11 @@ describe("Test item retrieval", () => {
 							},
 						})
 						.then((response) => {
-							// Log item ID for debugging
-							// Push item ID to array
 							itemIds.push(response.body.item.itemId);
 						});
 				});
 
-				// Use Cypress command chain to ensure all requests are completed
-				cy.wrap(itemCreationRequests).then(() => {
-					// Item IDs are now available in itemIds
-				});
+				cy.wrap(itemCreationRequests).then(() => {});
 			});
 		});
 	});
@@ -225,6 +265,8 @@ describe("Test item retrieval", () => {
 					new Date(itemDeadlines[i]).getTime()
 				);
 				expect(items[i].flag).to.eq(itemFlags[i]);
+				expect(items[i].creatorEmail).to.eq(userEmail);
+				expect(items[i].isCreator).to.eq(true);
 			}
 		});
 	});
@@ -249,6 +291,46 @@ describe("Test item retrieval", () => {
 			});
 		}
 	});
+
+	it("Verify creator on list", () => {
+		cy.request({
+			url: `${URL}/lists/${listId}/items/${itemIds[0]}`,
+			method: "GET",
+			headers: {
+				Authorization: `Bearer ${token2}`,
+			},
+		}).then((response) => {
+			expect(response.status).to.eq(200);
+			expect(response.body.item.isCreator).to.eq(false);
+			expect(response.body.item.creatorEmail).to.eq(userEmail);
+		});
+	});
+	it("Verify creator on item", () => {
+		cy.request({
+			url: `${URL}/lists/${listId}/items/${itemIds[0]}`,
+			method: "GET",
+			headers: {
+				Authorization: `Bearer ${token}`,
+			},
+		}).then((response) => {
+			expect(response.status).to.eq(200);
+			expect(response.body.item.isCreator).to.eq(true);
+			expect(response.body.item.creatorEmail).to.eq(userEmail);
+		});
+		// now with another user
+		cy.request({
+			url: `${URL}/lists/${listId}/items/${itemIds[0]}`,
+			method: "GET",
+			headers: {
+				Authorization: `Bearer ${token2}`,
+			},
+		}).then((response) => {
+			expect(response.status).to.eq(200);
+			expect(response.body.item.isCreator).to.eq(false);
+			expect(response.body.item.creatorEmail).to.eq(userEmail);
+		});
+	});
+
 	it("Update item", () => {
 		const updatedItem = {
 			title: "Updated title",
@@ -275,6 +357,25 @@ describe("Test item retrieval", () => {
 				new Date(updatedItem.deadline).getTime()
 			);
 			expect(response.body.item.flag).to.eq(updatedItem.flag);
+		});
+	});
+	it("Update item with user who is not part of a list", () => {
+		const updatedItem = {
+			title: "Updated title",
+			description: "Updated description",
+			deadline: "2022-01-06",
+			flag: "finished",
+		};
+		cy.request({
+			url: `${URL}/lists/${listId}/items/${itemIds[0]}`,
+			method: "PUT",
+			body: updatedItem,
+			headers: {
+				Authorization: `Bearer ${token2}`,
+			},
+			failOnStatusCode: false,
+		}).then((response) => {
+			expect(response.status).to.eq(403);
 		});
 	});
 	it("Remove items", () => {
@@ -304,6 +405,12 @@ describe("Test item retrieval", () => {
 			method: "POST",
 			failOnStatusCode: false,
 			body: { email: userEmail },
+		});
+		cy.request({
+			url: `${URL}/auth/delete/`,
+			method: "POST",
+			failOnStatusCode: false,
+			body: { email: userEmail2 },
 		});
 	});
 });

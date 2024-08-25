@@ -12,7 +12,8 @@ import {
 	ItemPropsRaw,
 	ListProps,
 	ListPropsRaw,
-} from "./types";
+} from "../types";
+
 import { itemsAttributes } from "models/items";
 import { usersAttributes } from "models/users";
 import { Op } from "sequelize";
@@ -293,8 +294,11 @@ export const updateListService = async (
 		if (!list) {
 			return null;
 		}
-		list.title = title;
+		list.set({
+			title,
+		});
 		await list.save();
+		console.log("list", list.get({ plain: true }), title);
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			throw new Error(error.message);

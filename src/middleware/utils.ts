@@ -1,5 +1,5 @@
 /**
- * @Utils for middleware
+ * @file Utility functions for middleware functions
  * @author Peter Kovac
  * @date 19.8.2024
  */
