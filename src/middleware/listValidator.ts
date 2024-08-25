@@ -123,3 +123,15 @@ export const validateRemoveUserFromList = [
 		handleValidationErrors(req, res, next);
 	},
 ];
+
+export const validateGetItem = [
+	check("listId")
+		.isInt({ gt: 0 })
+		.withMessage("listId must be a positive integer"),
+	check("itemId")
+		.isInt({ gt: 0 })
+		.withMessage("itemId must be a positive integer"),
+	(req: Request, res: Response, next: NextFunction) => {
+		handleValidationErrors(req, res, next);
+	},
+];

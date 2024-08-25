@@ -13,7 +13,9 @@ import {
 	handleCreateList,
 	handleDeleteItemFromList,
 	handleDeleteList,
+	handleGetAllItemsInList,
 	handleGetAllLists,
+	handleGetItemInList,
 	handleGetList,
 	handleRemoveUserFromList,
 	handleUpdateItemInList,
@@ -32,6 +34,7 @@ import {
 	validateCreateList,
 	validateDeleteItem,
 	validateDeleteList,
+	validateGetItem,
 	validateListId,
 	validateRemoveUserFromList,
 	validateUpdateItem,
@@ -39,21 +42,52 @@ import {
 
 const listRouter = express.Router();
 
+// Lists Routes
 // Get all lists
 listRouter.get("/", optionalAuthMiddleware, handleGetAllLists);
 
 // Get a specific list by id
-listRouter.get("/:listId", validateListId, handleGetList);
+listRouter.get(
+	"/:listId",
+	optionalAuthMiddleware,
+	validateListId,
+	handleGetList
+);
 
 // Create a new list
 listRouter.post("/", authMiddleware, validateCreateList, handleCreateList);
 
+// Delete a list
+listRouter.delete(
+	"/:listId",
+	authMiddleware,
+	validateDeleteList,
+	handleDeleteList
+);
+
+// Items Routes (Related to specific lists)
 // Add a new item to a list
 listRouter.post(
 	"/:listId/items",
 	authMiddleware,
 	validateCreateItem,
 	handleAddItemToList
+);
+
+// Retrieve all items from a list
+listRouter.get(
+	"/:listId/items",
+	optionalAuthMiddleware,
+	validateListId,
+	handleGetAllItemsInList
+);
+
+// Retrieve a single item from a list
+listRouter.get(
+	"/:listId/items/:itemId",
+	optionalAuthMiddleware,
+	validateGetItem,
+	handleGetItemInList
 );
 
 // Update an item in a list
@@ -64,14 +98,6 @@ listRouter.put(
 	handleUpdateItemInList
 );
 
-// Delete a list
-listRouter.delete(
-	"/:listId",
-	authMiddleware,
-	validateDeleteList,
-	handleDeleteList
-);
-
 // Delete an item from a list
 listRouter.delete(
 	"/:listId/items/:itemId",
@@ -80,6 +106,7 @@ listRouter.delete(
 	handleDeleteItemFromList
 );
 
+// Users Routes (Related to specific lists)
 // Add a user to a list
 listRouter.post(
 	"/:listId/users",

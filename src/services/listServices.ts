@@ -48,7 +48,8 @@ const handleServiceError = (error: unknown, functionOrigin: string): void => {
 };
 
 const _transformItem = (item: ItemPropsRaw, userId?: number): ItemProps => {
-	const { createdBy_user, createdBy, listId, ...rest } = item;
+	const { createdBy_user, createdBy, listId, createdAt, updatedAt, ...rest } =
+		item;
 	return {
 		...rest,
 		isCreator: userId === createdBy,
@@ -203,7 +204,7 @@ export const createListService = async (
 	userId: number,
 	title: string
 ): Promise<number> => {
-	const transaction = await sequelize.transaction();
+	// const transaction = await sequelize.transaction();
 	try {
 		const list = await models.lists.create({ title, createdBy: userId });
 		const listId = list.listId;
@@ -214,10 +215,10 @@ export const createListService = async (
 			throw new Error("List could not be created");
 		}
 
-		transaction.commit();
+		// transaction.commit();
 		return listId;
 	} catch (err: unknown) {
-		transaction.rollback();
+		// transaction.rollback();
 		console.error(err);
 		if (err instanceof Error) {
 			throw new Error(err.message);
@@ -264,11 +265,9 @@ export const getAllListUsersService = async (
 	}
 };
 
-export const getListService = async (listId: number) => {
+export const getListService = async (listId: number, userId?: number) => {
 	try {
-		// const result = await getListsService(null, listId);
-		// console.log(result[0]);
-		return (await getListsService(null, listId))[0];
+		return (await getListsService(userId, listId))[0];
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			throw new Error(error.message);
@@ -312,14 +311,14 @@ export const updateListService = async (
  * @throws Error if an error occurs during the database query
  */
 export const deleteListService = async (listId: number): Promise<void> => {
-	const transaction = await sequelize.transaction();
+	// const transaction = await sequelize.transaction();
 	try {
-		await models.userLists.destroy({ where: { listId }, transaction });
-		await models.lists.destroy({ where: { listId }, transaction });
+		await models.userLists.destroy({ where: { listId } });
+		await models.lists.destroy({ where: { listId } });
 
-		await transaction.commit();
+		// await transaction.commit();
 	} catch (error: unknown) {
-		await transaction.rollback();
+		// await transaction.rollback();
 		if (error instanceof Error) {
 			throw new Error(error.message);
 		} else {
@@ -357,7 +356,6 @@ export const deleteItemFromListService = async (
  */
 export const addItemToListService = async (item: CreateItem) => {
 	try {
-		console.log(item.userId);
 		const newItem = await models.items.create({
 			listId: item.listId,
 			title: item.title,
@@ -366,18 +364,17 @@ export const addItemToListService = async (item: CreateItem) => {
 			flag: item.flag,
 			deadline: new Date(item.deadline),
 		});
-		// const newItem = await models.items.create({
-		// 	listId: item.listId,
-		// 	title: "title",
-		// 	description: "description",
-		// 	createdBy: item.userId,
-		// 	flag: "active",
-		// 	deadline: new Date(),
-		// });
 
-		console.log(newItem.getDataValue("itemId"));
+		// THE CREATE METHOD RETURNs ITEMID NULL DESPITE AUTOINCREMENT AND ALLOW NULL FALSE
+		// THATS WHY WE HAVE TO DO THIS
+		const leastOldItem = await models.items.findOne({
+			order: [["createdAt", "DESC"]],
+		});
+		const itemPlain = leastOldItem.get({ plain: true });
+		delete itemPlain.createdAt;
+		delete itemPlain.updatedAt;
 
-		return newItem.get({ plain: true });
+		return itemPlain;
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			throw new Error(error.message);
@@ -419,17 +416,6 @@ export const updateItemInListService = async (
 		} else {
 			throw new Error("An error occurred in updateItemInListService");
 		}
-	}
-};
-export const getItemService = async (itemId: number) => {
-	try {
-		const item = await models.items.findOne({ where: { itemId } });
-		if (!item) {
-			return null;
-		}
-		return item.get({ plain: true });
-	} catch (error: unknown) {
-		handleServiceError(error, "getItemService");
 	}
 };
 
@@ -478,6 +464,52 @@ export const removeUserFromListService = async (
 		});
 	} catch (error: unknown) {
 		handleServiceError(error, "removeUserFromListService");
+	}
+};
+
+/**
+ * Retrievs a single item from the database.
+ *
+ * @param itemId ID of the item to retrieve
+ * @param userId Optional ID of the user - if present, the function will also check
+ * if the user is the creator of the item
+ * @returns ItemProps object if the item is found, null otherwise
+ */
+export const getItemService = async (
+	itemId: number,
+	userId?: number
+): Promise<null | ItemProps> => {
+	try {
+		const item = await models.items.findOne({
+			where: { itemId },
+			include: [
+				{
+					model: models.users,
+					as: "createdBy_user",
+					attributes: ["email"],
+				},
+			],
+		});
+		if (!item) {
+			return null;
+		}
+		const rawItem = item.get({ plain: true }) as ItemPropsRaw;
+		const transformedItem = _transformItem(rawItem, userId);
+		return transformedItem;
+	} catch (error: unknown) {
+		handleServiceError(error, "getItemService");
+	}
+};
+
+export const itemBelongsToListService = async (
+	itemId: number,
+	listId: number
+): Promise<boolean> => {
+	try {
+		const item = await models.items.findOne({ where: { itemId, listId } });
+		return item !== null;
+	} catch (error: unknown) {
+		handleServiceError(error, "itemBelongsToListService");
 	}
 };
 

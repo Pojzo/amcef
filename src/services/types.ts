@@ -8,6 +8,8 @@ export interface ItemPropsBase {
 
 export interface ItemPropsRaw extends ItemPropsBase {
 	createdBy: number;
+	createdAt: Date;
+	updatedAt: Date;
 	listId: number;
 	createdBy_user: {
 		email: string;

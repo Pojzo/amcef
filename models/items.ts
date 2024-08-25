@@ -10,6 +10,8 @@ export interface itemsAttributes {
 	description: string;
 	createdBy: number;
 	flag: "active" | "finished" | "aborted";
+	createdAt: Date;
+	updatedAt: Date;
 	deadline?: Date;
 }
 
@@ -30,6 +32,8 @@ export class items
 	title!: string;
 	description!: string;
 	createdBy!: number;
+	updatedAt: Date;
+	createdAt!: Date;
 	flag!: "active" | "finished" | "aborted";
 	deadline?: Date;
 
@@ -63,6 +67,16 @@ export class items
 					onDelete: "CASCADE",
 					onUpdate: "CASCADE",
 				},
+				createdAt: {
+					type: Sequelize.DATE(3),
+					allowNull: false,
+					defaultValue: Sequelize.literal("CURRENT_TIMESTAMP(3)"),
+				},
+				updatedAt: {
+					type: Sequelize.DATE(3),
+					allowNull: false,
+					defaultValue: Sequelize.literal("CURRENT_TIMESTAMP(3)"),
+				},
 				title: {
 					type: DataTypes.STRING(50),
 					allowNull: false,
@@ -94,7 +108,7 @@ export class items
 			{
 				sequelize,
 				tableName: "items",
-				timestamps: false,
+				timestamps: true,
 				indexes: [
 					{
 						name: "PRIMARY",

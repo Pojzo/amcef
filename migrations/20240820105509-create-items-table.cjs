@@ -29,6 +29,11 @@ module.exports = {
 				type: Sequelize.STRING(255),
 				allowNull: false,
 			},
+			createdAt: {
+				type: Sequelize.DATE,
+				allowNull: false,
+				defaultValue: Sequelize.NOW,
+			},
 			createdBy: {
 				type: Sequelize.INTEGER,
 				allowNull: false,

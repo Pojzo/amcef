@@ -23,6 +23,7 @@ import {
 	getListsService,
 	getUserByEmailService,
 	isUserCreatorService,
+	itemBelongsToListService,
 	listBelongsToUserService,
 	removeUserFromListService,
 	updateItemInListService,
@@ -96,11 +97,12 @@ export const handleGetList = async (req: Request, res: Response) => {
 		const listId = parseInt(req.params.listId);
 
 		const list = await getListsService(null, listId);
+
 		if (!list) {
 			return res.status(404).json({ message: "List not found" });
 		}
 
-		res.status(200).json({ list });
+		res.status(200).json({ list: list[0] });
 	} catch (error: unknown) {
 		handleControllerError(error, res);
 	}
@@ -168,6 +170,50 @@ export const handleDeleteList = async (req: Request, res: Response) => {
 	}
 };
 
+export const handleGetAllItemsInList = async (req: Request, res: Response) => {
+	try {
+		const listId = parseInt(req.params.listId);
+		const list = await getListService(listId, req.body.userId);
+		if (!list) {
+			return res.status(404).json({ message: "List not found" });
+		}
+		const items = list.items;
+
+		res.status(200).json({ message: "OK", items });
+	} catch (error: unknown) {
+		handleControllerError(error, res);
+	}
+};
+
+/**
+ * Retrieves a single item from a list.
+ *
+ * @param req Express request object. The `req.params` should contain the `listId` and `itemId`.
+ * @param res Express response. Status codes:
+ * 				- 200 if the item was found and returned successfull
+ * 				- 404 if the list or item was not found, or the item does not belong to the list
+ * 				- 500 if an internal server error occurred
+ */
+export const handleGetItemInList = async (req: Request, res: Response) => {
+	try {
+		const listId = parseInt(req.params.listId);
+		const itemId = parseInt(req.params.itemId);
+		if (!(await getListService(listId))) {
+			return res.status(404).json({ message: "List not found" });
+		}
+		if (!(await itemBelongsToListService(itemId, listId))) {
+			return res.status(404).json({ message: "Item not found" });
+		}
+		const item = await getItemService(itemId, req.body.userId);
+		if (!item) {
+			return res.status(404).json({ message: "Item not found" });
+		}
+		res.status(200).json({ message: "OK", item });
+	} catch (error: unknown) {
+		handleControllerError(error, res);
+	}
+};
+
 /**
  * Handles adding an item to a list.
  *
@@ -182,7 +228,6 @@ export const handleDeleteList = async (req: Request, res: Response) => {
  */
 export const handleAddItemToList = async (req: Request, res: Response) => {
 	const listId = parseInt(req.params.listId);
-	console.log("adding;", req.body, listId);
 	try {
 		// Check if the list exists
 		if (!(await getListService(listId))) {
@@ -197,10 +242,8 @@ export const handleAddItemToList = async (req: Request, res: Response) => {
 		}
 
 		req.body.listId = listId;
-		console.log(req.body);
 		const newItem = await addItemToListService(req.body);
 
-		console.log(newItem);
 		res.status(201).json({ message: "OK", item: newItem });
 	} catch (error: unknown) {
 		handleControllerError(error, res);
@@ -241,13 +284,15 @@ export const handleUpdateItemInList = async (req: Request, res: Response) => {
 			});
 		}
 
-		const updateItem = await updateItemInListService(req.body);
+		await updateItemInListService(req.body);
 
-		if (!updateItem) {
+		const newItem = await getItemService(req.body.itemId);
+
+		if (!newItem) {
 			return res.status(404).json({ message: "Item not found" });
 		}
 
-		return res.status(200).json({ message: "OK" });
+		return res.status(200).json({ message: "OK", item: newItem });
 	} catch (err: unknown) {
 		handleControllerError(err, res);
 	}
@@ -322,11 +367,12 @@ export const handleAddUserToList = async (req: Request, res: Response) => {
 			});
 		}
 
-		const list = await getListService(listId);
+		const list = await getListService(listId, req.body.userId);
+
 		if (!list) {
 			return res.status(404).json({ message: "List not found" });
 		}
-		if (list.createdBy !== req.body.userId) {
+		if (!list.isCreator) {
 			return res
 				.status(403)
 				.json({ message: "Only the owner of a list can add users" });

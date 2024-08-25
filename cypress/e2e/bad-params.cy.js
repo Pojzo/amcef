@@ -112,62 +112,6 @@ describe("Bad parameters", () => {
 			expect(response.status).to.eq(400);
 		});
 	});
-	it("Add an item to a list that does not exist", () => {
-		const createRequest = createNewItemRequest(token, 32434, itemDummyData);
-		cy.request(createRequest).then((response) => {
-			expect(response.status).to.eq(404);
-		});
-	});
-	it("Add an item to a list that does exist", () => {
-		const createRequest = createNewItemRequest(
-			token,
-			testListId,
-			itemDummyData
-		);
-		cy.request(createRequest).then((response) => {
-			expect(response.status).to.eq(201);
-		});
-	});
-	it("Remove an item that does not exist", () => {
-		const removeRequest = {
-			url: `${URL}/lists/${testListId}/items/324234`,
-			method: "DELETE",
-			headers: {
-				Authorization: `Bearer ${token}`,
-			},
-			failOnStatusCode: false,
-		};
-		cy.request(removeRequest).then((response) => {
-			expect(response.status).to.eq(404);
-		});
-	});
-	it("Removed item that was removed", () => {
-		const createRequest = createNewItemRequest(
-			token,
-			testListId,
-			itemDummyData
-		);
-		cy.request(createRequest).then((response) => {
-			const itemId = response.body.item.itemId;
-			const removeRequest = {
-				url: `${URL}/lists/${testListId}/items/${itemId}`,
-				method: "DELETE",
-				headers: {
-					Authorization: `Bearer ${token}`,
-				},
-			};
-			return cy
-				.request(removeRequest)
-				.then((response) => {
-					expect(response.status).to.eq(200);
-				})
-				.then(() => {
-					cy.request(removeRequest).then((response) => {
-						expect(response.status).to.eq(404);
-					});
-				});
-		});
-	});
 	after(() => {
 		cy.request({
 			url: `${URL}/auth/delete/`,

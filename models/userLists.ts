@@ -62,15 +62,6 @@ export class userLists extends Model<userListsAttributes, userListsCreationAttri
         ]
       },
       {
-        name: "userLists_userId_listId_unique",
-        unique: true,
-        using: "BTREE",
-        fields: [
-          { name: "listId" },
-          { name: "userId" },
-        ]
-      },
-      {
         name: "userId",
         using: "BTREE",
         fields: [

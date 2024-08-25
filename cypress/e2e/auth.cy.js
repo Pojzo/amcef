@@ -1,30 +1,16 @@
-import { URL } from "./config";
-let i = 0;
-const usersCreated = [];
-
-const createDummyUser = () => {
-	const registrationData = {
-		email: `example${i++}@gmail.com`,
-		password: "TestPassword123",
-	};
-	usersCreated.push(registrationData);
-	return registrationData;
-};
-
-const createRegisterRequestData = (registrationData) => {
-	return {
-		method: "POST",
-		url: `${URL}/auth/register`,
-		body: registrationData,
-		failOnStatusCode: false,
-	};
-};
+import {
+	createDummyUser,
+	createRegisterRequestData,
+	getRoute,
+	getRouteUsage,
+	usersCreated,
+} from "./utils";
 
 describe("Authentication and authorization tests", () => {
 	it("Test registration", () => {
 		const registrationData = createDummyUser();
 
-		cy.request("POST", `${URL}/auth/register`, registrationData).then(
+		cy.request("POST", getRoute("/auth/register"), registrationData).then(
 			(response) => {
 				expect(response.status).to.eq(201);
 				expect(response.body).to.have.property("token");
@@ -35,7 +21,7 @@ describe("Authentication and authorization tests", () => {
 	it("Test registration with existing email", () => {
 		const registrationData = createDummyUser();
 
-		cy.request("POST", `${URL}/auth/register`, registrationData).then(
+		cy.request("POST", getRoute("/auth/register"), registrationData).then(
 			(response) => {
 				expect(response.status).to.eq(201);
 				expect(response.body).to.have.property("token");
@@ -52,7 +38,7 @@ describe("Authentication and authorization tests", () => {
 	it("Check login status after registration", () => {
 		const registrationData = createDummyUser();
 
-		cy.request("POST", `${URL}/auth/register`, registrationData).then(
+		cy.request("POST", getRoute("/auth/register"), registrationData).then(
 			(response) => {
 				expect(response.status).to.eq(201);
 				expect(response.body).to.have.property("token");
@@ -62,7 +48,7 @@ describe("Authentication and authorization tests", () => {
 				};
 
 				cy.request({
-					url: `${URL}/auth/is-logged-in`,
+					url: getRoute("/auth/is-logged-in"),
 					headers,
 				}).then((response) => {
 					expect(response.status).to.eq(200);
@@ -79,7 +65,7 @@ describe("Authentication and authorization tests", () => {
 		// Register the user
 		cy.request({
 			method: "POST",
-			url: `${URL}/auth/register`,
+			url: getRoute("/auth/register"),
 			body: registrationData,
 		}).then((registrationResponse) => {
 			// Assert registration response
@@ -96,7 +82,7 @@ describe("Authentication and authorization tests", () => {
 			return cy
 				.request({
 					method: "POST",
-					url: `${URL}/auth/login`,
+					url: getRoute("/auth/login"),
 					body: loginData,
 				})
 				.then((loginResponse) => {
@@ -107,7 +93,7 @@ describe("Authentication and authorization tests", () => {
 					};
 					return cy.request({
 						method: "GET",
-						url: `${URL}/auth/is-logged-in`,
+						url: getRoute("/auth/is-logged-in"),
 						headers,
 					});
 				})
@@ -121,7 +107,7 @@ describe("Authentication and authorization tests", () => {
 
 	it("Should not be logged in without token", () => {
 		cy.request({
-			url: `${URL}/auth/is-logged-in`,
+			url: getRoute("/auth/is-logged-in"),
 			failOnStatusCode: false,
 		}).then((response) => {
 			expect(response.status).to.eq(200);
@@ -177,7 +163,7 @@ describe("Authentication and authorization tests", () => {
 	it("Check login status after logout", () => {
 		const registrationData = createDummyUser();
 		cy.request({
-			url: `${URL}/auth/register`,
+			url: getRoute("/auth/register"),
 			method: "POST",
 			body: registrationData,
 		}).then((response) => {
@@ -188,13 +174,13 @@ describe("Authentication and authorization tests", () => {
 				Authorization: `Bearer ${response.body.token}`,
 			};
 			cy.request({
-				url: `${URL}/auth/logout`,
+				url: getRoute("/auth/logout"),
 				method: "POST",
 				headers,
 			}).then((response) => {
 				expect(response.status).to.eq(200);
 				cy.request({
-					url: `${URL}/auth/is-logged-in`,
+					url: getRoute("/auth/is-logged-in"),
 					headers,
 				}).then((response) => {
 					expect(response.status).to.eq(200);
@@ -204,10 +190,11 @@ describe("Authentication and authorization tests", () => {
 			});
 		});
 	});
+
 	it("Check login status with malformed token", () => {
 		const registrationData = createDummyUser();
 		cy.request({
-			url: `${URL}/auth/register`,
+			url: getRoute("/auth/register"),
 			method: "POST",
 			body: registrationData,
 		}).then((response) => {
@@ -218,7 +205,7 @@ describe("Authentication and authorization tests", () => {
 				Authorization: `Bearer ${response.body.token}malformed`,
 			};
 			cy.request({
-				url: `${URL}/auth/is-logged-in`,
+				url: getRoute("/auth/is-logged-in"),
 				headers,
 				failOnStatusCode: false,
 			}).then((response) => {
@@ -228,154 +215,7 @@ describe("Authentication and authorization tests", () => {
 	});
 
 	after(() => {
-		const deleteUrl = `${URL}/auth/delete`;
-		usersCreated.forEach((user) => {
-			cy.request({
-				method: "POST",
-				url: deleteUrl,
-				body: { email: user.email },
-			}).then((response) => {
-				expect(response.status).to.eq(200);
-			});
-		});
-	});
-});
-
-describe("Add and remove users from lists", () => {
-	let user1Data;
-	let user2Data;
-
-	let user1;
-	let user2;
-
-	before(() => {
-		user1Data = createDummyUser();
-		user2Data = createDummyUser();
-		cy.request({
-			method: "POST",
-			url: `${URL}/auth/register`,
-			body: user1Data,
-		}).then((response) => {
-			expect(response.status).to.eq(201);
-			expect(response.body).to.have.property("token");
-			user1 = response.body.token;
-		});
-		cy.request({
-			method: "POST",
-			url: `${URL}/auth/register`,
-			body: user2Data,
-		}).then((response) => {
-			expect(response.status).to.eq(201);
-			expect(response.body).to.have.property("token");
-			user2 = response.body.token;
-		});
-	});
-
-	it("Create list", () => {
-		const title = "Test list";
-		cy.request({
-			url: `${URL}/lists`,
-			method: "POST",
-			body: { title },
-			headers: {
-				Authorization: `Bearer ${user1}`,
-			},
-		}).then((response) => {
-			expect(response.status).to.eq(201);
-			expect(response.body.list).to.have.property("listId");
-			expect(response.body.list).to.have.property("title");
-			expect(response.body.list.title).to.eq(title);
-		});
-	});
-
-	it("Add user to list", () => {
-		const title = "Test list";
-		let listId;
-		cy.request({
-			url: `${URL}/lists`,
-			method: "POST",
-			body: { title },
-			headers: {
-				Authorization: `Bearer ${user1}`,
-			},
-		}).then((response) => {
-			listId = response.body.list.listId;
-			cy.request({
-				url: `${URL}/lists/${listId}/users`,
-				method: "POST",
-				body: { email: user2Data.email },
-				headers: {
-					Authorization: `Bearer ${user1}`,
-				},
-			}).then((response) => {
-				expect(response.status).to.eq(201);
-			});
-		});
-	});
-
-	it("Add a non-existing user to list", () => {
-		const title = "Test list";
-		let listId;
-		cy.request({
-			url: `${URL}/lists`,
-			method: "POST",
-			body: { title },
-			headers: {
-				Authorization: `Bearer ${user1}`,
-			},
-		}).then((response) => {
-			listId = response.body.list.listId;
-			cy.request({
-				url: `${URL}/lists/${listId}/users`,
-				method: "POST",
-				body: { email: "noexistent@gmail.com" },
-				headers: {
-					Authorization: `Bearer ${user1}`,
-				},
-				failOnStatusCode: false,
-			}).then((response) => {
-				expect(response.status).to.eq(404);
-			});
-		});
-	});
-	it("Add a user to the list that is already in the list", () => {
-		const title = "Test list";
-		let listId;
-		cy.request({
-			url: `${URL}/lists`,
-			method: "POST",
-			body: { title },
-			headers: {
-				Authorization: `Bearer ${user1}`,
-			},
-		}).then((response) => {
-			listId = response.body.list.listId;
-			cy.request({
-				url: `${URL}/lists/${listId}/users`,
-				method: "POST",
-				body: { email: user2Data.email },
-				headers: {
-					Authorization: `Bearer ${user1}`,
-				},
-			}).then((response) => {
-				expect(response.status).to.eq(201);
-				cy.request({
-					url: `${URL}/lists/${listId}/users`,
-					method: "POST",
-					body: { email: user2Data.email },
-					headers: {
-						Authorization: `Bearer ${user1}`,
-					},
-					failOnStatusCode: false,
-				}).then((response) => {
-					expect(response.status).to.eq(409);
-				});
-			});
-		});
-	});
-
-	after(() => {
-		const deleteUrl = `${URL}/auth/delete`;
+		const deleteUrl = getRoute("/auth/delete");
 		usersCreated.forEach((user) => {
 			cy.request({
 				method: "POST",

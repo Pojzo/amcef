@@ -1,4 +1,5 @@
 import { URL } from "./config";
+import { getRouteUsage } from "./utils";
 const routes = [
 	{
 		method: "POST",
@@ -103,9 +104,16 @@ describe("Protected routes after logout", () => {
 				Authorization: `Bearer ${token}`,
 			},
 			body: {
-				email: "example2@gmail.com2",
+				email: "example2@gmail.com",
 			},
 			failOnStatusCode: false,
+		});
+
+		const routeUsage = getRouteUsage();
+		const stringified = JSON.stringify(routeUsage, null, 2);
+		cy.task("writeToFile", {
+			filename: "routeUsageLog.txt",
+			content: stringified,
 		});
 	});
 });
