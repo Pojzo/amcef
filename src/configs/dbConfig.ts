@@ -1,3 +1,9 @@
+/**
+ * @file Database configuration
+ * @author Peter Kovac
+ * @date 19.8.2024
+ */
+
 const USER: string = "root";
 const PASSWORD: string = "Root12345";
 const DATABASE_NAME: string = "database_test";
