@@ -146,11 +146,15 @@ export const logoutUserService = async (userId: string): Promise<void> => {
 export const isLoggedInService = async (token: string): Promise<boolean> => {
 	try {
 		const { userId, jwtTokenVersion } = await getUserFromToken(token);
+
 		// tokenVersion is the version of the token in the database
 		const rawData = await models.users.findOne({
 			where: { userId },
 			attributes: ["jwtTokenVersion"],
 		});
+		if (!rawData) {
+			return false;
+		}
 
 		const data = rawData.get({ plain: true });
 

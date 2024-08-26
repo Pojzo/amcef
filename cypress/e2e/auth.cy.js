@@ -209,7 +209,7 @@ describe("Authentication and authorization tests", () => {
 				headers,
 				failOnStatusCode: false,
 			}).then((response) => {
-				expect(response.status).to.eq(500);
+				expect(response.status).to.eq(200);
 			});
 		});
 	});

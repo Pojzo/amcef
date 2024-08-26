@@ -14,11 +14,14 @@ const sequelize = new Sequelize(DATABASE_NAME, USER, PASSWORD, {
 	host: HOST,
 	dialect: "mysql",
 	logging: false,
+	define: {
+		timestamps: true,
+	},
 });
 
-sequelize.sync({
-	force: true,
-});
+// sequelize.sync({
+// 	force: true,
+// });
 
 console.log(`Using database: ${DATABASE_NAME}`);
 

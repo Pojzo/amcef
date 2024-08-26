@@ -4,7 +4,7 @@
  * @date 22.8.2024
  */
 
-import sequelize, { models } from "src/db";
+import { models } from "src/db";
 import { CreateItem } from "src/types";
 import {
 	ItemProps,
@@ -298,7 +298,6 @@ export const updateListService = async (
 			title,
 		});
 		await list.save();
-		console.log("list", list.get({ plain: true }), title);
 	} catch (error: unknown) {
 		if (error instanceof Error) {
 			throw new Error(error.message);

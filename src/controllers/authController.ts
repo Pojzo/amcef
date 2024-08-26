@@ -20,7 +20,7 @@ import { handleControllerError } from "./controllerError";
  *
  * @param req Express request object. The `req.body` should contain the `email` and `password` for the new user.
  * @param res Express response object. Status codes:
- *  - 201 if the registration is successful and a user is created. Returns a JSON object with the `token` and `user` information.
+ *  - 201 if the registration is successful and a user is created. Returns a JSON object with the `token`.
  *  - 409 if the user already exists (conflict error).
  *  - 500 if an internal server error occurs.
  * @returns void
@@ -35,7 +35,7 @@ export const handleRegister = async (req: Request, res: Response) => {
 		const user = await createUserService(req.body.email, req.body.password);
 		const token = await loginUserService(req.body.email, req.body.password);
 
-		res.status(201).json({ token, user });
+		res.status(201).json({ token });
 	} catch (error: unknown) {
 		console.error(error);
 		handleControllerError(error, res);
@@ -96,7 +96,6 @@ export const handleLogout = async (req: Request, res: Response) => {
 		}
 
 		await logoutUserService(req.body.userId);
-		console.log("successfully logged out");
 		res.status(200).json({ message: "User logged out" });
 	} catch (error: unknown) {
 		handleControllerError(error, res);
@@ -136,6 +135,7 @@ export const handleIsLoggedIn = async (req: Request, res: Response) => {
 
 		res.status(200).json({ isLoggedIn });
 	} catch (error: unknown) {
-		handleControllerError(error, res);
+		res.status(200).json({ isLoggedIn: false });
+		// handleControllerError(error, res);
 	}
 };

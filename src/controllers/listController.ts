@@ -133,7 +133,6 @@ export const handleUpdateList = async (req: Request, res: Response) => {
 		}
 		await updateListService(listId, req.body.title);
 		const updatedList = await getListService(listId);
-		console.log(updatedList, req.body.title);
 		res.status(201).json({ list: updatedList });
 	} catch (error: unknown) {
 		handleControllerError(error, res);
@@ -251,6 +250,13 @@ export const handleRemoveUserFromList = async (req: Request, res: Response) => {
 		if (!(await isUserCreatorService(req.body.userId, listId))) {
 			return res.status(403).json({
 				message: "Only the owner of a list can remove users",
+			});
+		}
+
+		const userId = (await getUserByEmailService(email)).userId;
+		if (userId === req.body.userId) {
+			return res.status(403).json({
+				message: "You cannot remove yourself from the list",
 			});
 		}
 
