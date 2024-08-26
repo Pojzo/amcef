@@ -12,8 +12,10 @@ import {
 	logoutUserService,
 	userExistsEmailService,
 	userExistsIdService,
+	verifyPasswordService,
 } from "src/services/authServices";
 import { handleControllerError } from "./controllerError";
+import { hashPassword } from "src/services/utils";
 
 /**
  * Handles user registration for the /auth/register route.
@@ -32,8 +34,10 @@ export const handleRegister = async (req: Request, res: Response) => {
 			return res.status(409).json({ message: "User already exists" });
 		}
 
-		const user = await createUserService(req.body.email, req.body.password);
-		const token = await loginUserService(req.body.email, req.body.password);
+		const hashedPassword = await hashPassword(req.body.password);
+		await createUserService(req.body.email, hashedPassword);
+
+		const token = await loginUserService(req.body.email, hashedPassword);
 
 		res.status(201).json({ token });
 	} catch (error: unknown) {
@@ -60,7 +64,21 @@ export const handleLogin = async (req: Request, res: Response) => {
 				.json({ message: "Invalid email or password" });
 		}
 
-		const token = await loginUserService(req.body.email, req.body.password);
+		console.log("logging in");
+		const correctCredentials = await verifyPasswordService(
+			req.body.email,
+			req.body.password
+		);
+
+		if (!correctCredentials) {
+			return res
+				.status(404)
+				.json({ message: "Invalid email or password" });
+		}
+
+		const hashedPassword = await hashPassword(req.body.password);
+		const token = await loginUserService(req.body.email);
+		console.log("after login");
 
 		if (!token) {
 			return res

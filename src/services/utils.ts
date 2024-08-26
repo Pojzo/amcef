@@ -38,3 +38,28 @@ export const verifyToken = async (token: string): Promise<boolean> => {
 		return false;
 	}
 };
+
+import bcrypt from "bcrypt";
+
+/**
+ * Hash the given password using bcrypt.
+ *
+ * @param password The password to hash.
+ * @returns A promise that resolves to the hashed password.
+ * @throws Error if hashing fails.
+ */
+export const hashPassword = async (password: string): Promise<string> => {
+	try {
+		const saltRounds = 10;
+		const hashedPassword = await bcrypt.hash(password, saltRounds);
+		return hashedPassword;
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			throw new Error(`Failed to hash password: ${error.message}`);
+		} else {
+			throw new Error(
+				"An unknown error occurred while hashing the password"
+			);
+		}
+	}
+};

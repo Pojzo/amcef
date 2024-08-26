@@ -10,6 +10,8 @@ import { signToken } from "./utils";
 import { models } from "src/db";
 import { users } from "models/users";
 
+import bcrypt from "bcrypt";
+
 /**
  * Checks if a user with the given email exists.
  *
@@ -91,19 +93,17 @@ export const createUserService = async (
  * @returns JWT token if the login is successful.
  * @throws Error if there is an error when interacting with the database or signing of the JWT token.
  */
-export const loginUserService = async (
-	email: string,
-	password: string
-): Promise<string> => {
+export const loginUserService = async (email: string): Promise<string> => {
 	try {
 		const user = await models.users.findOne({
-			where: { email, password },
+			where: { email },
 			raw: true,
 		});
 
 		if (!user) {
 			throw new Error("User not found");
 		}
+
 		const userId = user.userId;
 		const jwtTokenVersion = user.jwtTokenVersion;
 
@@ -119,6 +119,34 @@ export const loginUserService = async (
 	}
 };
 
+export const verifyPasswordService = async (
+	email: string,
+	password: string
+): Promise<boolean> => {
+	try {
+		// Find the user by email
+		const user = await models.users.findOne({
+			where: { email },
+			raw: true,
+		});
+
+		// If user not found, return false
+		if (!user) {
+			return false;
+		}
+
+		// Compare the provided password with the hashed password
+		const passwordMatch = await bcrypt.compare(password, user.password);
+
+		return passwordMatch;
+	} catch (error: unknown) {
+		if (error instanceof Error) {
+			throw new Error(error.message);
+		} else {
+			throw new Error("An error occurred in verifyPasswordService");
+		}
+	}
+};
 /**
  * Logs out the user by incrementing the JWT token version.
  *

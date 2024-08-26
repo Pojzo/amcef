@@ -71,12 +71,14 @@ describe("Authentication and authorization tests", () => {
 			// Assert registration response
 			expect(registrationResponse.status).to.eq(201);
 			expect(registrationResponse.body).to.have.property("token");
+			console.log("registration password", registrationData.password);
 			const token = registrationResponse.body.token;
 
 			const loginData = {
 				email: registrationData.email,
 				password: registrationData.password,
 			};
+			console.log("loginData", loginData);
 
 			// Log in with the same credentials
 			return cy
