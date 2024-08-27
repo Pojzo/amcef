@@ -91,8 +91,6 @@ listRouter.delete(
 	handleRemoveUserFromList
 );
 
-// pici tu
-
 // Retrieve all items from a list
 listRouter.get(
 	"/:listId/items",
